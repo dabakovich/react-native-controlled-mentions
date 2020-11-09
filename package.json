@@ -1,0 +1,15 @@
+{
+  "name": "react-native-controlled-mentions",
+  "version": "0.0.1",
+  "description": "Fully controlled React Native mentions component",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "author": "David Tabaka <dabakovich@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/react": "^16.9.56",
+    "@types/react-native": "^0.63.33",
+    "typescript": "^4.0.5"
+  },
+  "dependencies": {}
+}
