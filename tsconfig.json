@@ -19,11 +19,11 @@
 
     "esModuleInterop": true,
 
-    "exclude": [
-      "node_modules",
-      "dist"
-    ],
-
     "jsx": "react-native"
-  }
+  },
+
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }
