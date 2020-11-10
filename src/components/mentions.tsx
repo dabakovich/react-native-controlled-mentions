@@ -44,11 +44,16 @@ type Part = {
   data?: MentionData;
 };
 
+type MentionSuggestionsProps = {
+  keyword: string | undefined;
+  onSuggestionPress: (suggestion: Suggestion) => void;
+};
+
 type MentionsProps = Omit<TextInputProps, 'onChange'> & {
   value: string;
   onChange: (value: string) => any;
 
-  renderSuggestions: (keyword: string | undefined, onSuggestionPress: (suggestion: Suggestion) => void) => ReactNode;
+  renderSuggestions: (props: MentionSuggestionsProps) => ReactNode;
 
   // Character that will trigger mentions (usually '@')
   trigger?: string;
@@ -381,7 +386,7 @@ const Mentions: FC<MentionsProps> = (
 
   return (
     <View style={containerStyle}>
-      {renderSuggestions(keyword, onMentionSuggestionPress)}
+      {renderSuggestions({keyword, onSuggestionPress: onMentionSuggestionPress})}
 
       <TextInput
         {...textInputProps}
@@ -406,4 +411,4 @@ const Mentions: FC<MentionsProps> = (
 };
 
 export { Mentions };
-export type { Suggestion };
+export type { Suggestion, MentionSuggestionsProps };
