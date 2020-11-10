@@ -1,10 +1,12 @@
 import {
   NativeSyntheticEvent,
+  StyleProp,
   Text,
   TextInput,
   TextInputProps,
   TextInputSelectionChangeEventData,
   View,
+  ViewStyle,
 } from 'react-native';
 import React, { FC, MutableRefObject, ReactNode, useMemo, useRef, useState } from 'react';
 
@@ -42,7 +44,7 @@ type Part = {
   data?: MentionData;
 };
 
-type MentionsProps = TextInputProps & {
+type MentionsProps = Omit<TextInputProps, 'onChange'> & {
   value: string;
   onChange: (value: string) => any;
 
@@ -51,7 +53,9 @@ type MentionsProps = TextInputProps & {
   // Character that will trigger mentions (usually '@')
   trigger?: string;
 
-  inputRef?: MutableRefObject<TextInput>;
+  containerStyle?: StyleProp<ViewStyle>;
+
+  inputRef?: MutableRefObject<TextInput | null>;
 };
 
 const reg = /(?<original>@\[(?<name>[A-Za-z0-9_ ]*)]\((?<id>([0-9]*))\))/gi;
@@ -64,6 +68,8 @@ const Mentions: FC<MentionsProps> = (
     renderSuggestions,
 
     trigger = '@',
+
+    containerStyle,
 
     inputRef: propInputRef,
 
@@ -371,10 +377,10 @@ const Mentions: FC<MentionsProps> = (
   const handleTextInputRef = (ref: TextInput) => {
     textInput.current = ref as TextInput;
     if (propInputRef) propInputRef.current = ref as TextInput;
-  }
+  };
 
   return (
-    <View>
+    <View style={containerStyle}>
       {renderSuggestions(keyword, onMentionSuggestionPress)}
 
       <TextInput
