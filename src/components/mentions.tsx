@@ -201,17 +201,29 @@ const Mentions: FC<MentionsProps> = (
     // In case when we add new characters
     if (isAdded) {
       // Finding part where text was added
-      const currentPart = parts.find(one => selection.end >= one.position.start && selection.end <= one.position.end);
+      const currentPartIndex = parts.findIndex(one => selection.end >= one.position.start && selection.end <= one.position.end);
+      const currentPart = parts[currentPartIndex];
 
       if (!currentPart) return;
 
-      // In case when user edited mention we remove mention
-      if (currentPart.data != null) {
-        currentPart.data = undefined;
-      }
-
       const addedTextPartPositionBeforeChange = selection.end - currentPart.position.start;
       const addedText = text.substring(selection.end, selection.end + difference);
+
+      // In case when user edited mention we remove mention
+      if (currentPart.data != null) {
+        // In case when we added text at the end of mention
+        if (currentPart.position.end === selection.end) {
+          onChange(toValue([
+            ...parts.slice(0, currentPartIndex),
+            currentPart,
+            getPart(addedText, selection.end),
+            ...parts.slice(currentPartIndex + 1),
+          ]));
+
+          return;
+        }
+        currentPart.data = undefined;
+      }
 
       currentPart.text = [
         currentPart.text.substring(0, addedTextPartPositionBeforeChange),
@@ -240,7 +252,7 @@ const Mentions: FC<MentionsProps> = (
         .map((one) => {
           if (
             removedTextPosition.start >= one.position.start && removedTextPosition.start < one.position.end
-            || removedTextPosition.end >= one.position.start && removedTextPosition.end <= one.position.end
+            || removedTextPosition.end > one.position.start && removedTextPosition.end <= one.position.end
           ) {
             const positionOffset = one.position.start;
 
