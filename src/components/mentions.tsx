@@ -1,5 +1,12 @@
-import { NativeSyntheticEvent, Text, TextInput, TextInputSelectionChangeEventData, View } from 'react-native';
-import React, { FC, ReactNode, useMemo, useRef, useState } from 'react';
+import {
+  NativeSyntheticEvent,
+  Text,
+  TextInput,
+  TextInputProps,
+  TextInputSelectionChangeEventData,
+  View,
+} from 'react-native';
+import React, { FC, MutableRefObject, ReactNode, useMemo, useRef, useState } from 'react';
 
 // @ts-ignore
 import matchAll from 'string.prototype.matchall';
@@ -35,7 +42,7 @@ type Part = {
   data?: MentionData;
 };
 
-type MentionsProps = {
+type MentionsProps = TextInputProps & {
   value: string;
   onChange: (value: string) => any;
 
@@ -43,6 +50,8 @@ type MentionsProps = {
 
   // Character that will trigger mentions (usually '@')
   trigger?: string;
+
+  inputRef?: MutableRefObject<TextInput>;
 };
 
 const reg = /(?<original>@\[(?<name>[A-Za-z0-9_ ]*)]\((?<id>([0-9]*))\))/gi;
@@ -55,9 +64,13 @@ const Mentions: FC<MentionsProps> = (
     renderSuggestions,
 
     trigger = '@',
+
+    inputRef: propInputRef,
+
+    ...textInputProps
   },
 ) => {
-  const textInput = useRef<TextInput>(null);
+  const textInput = useRef<TextInput | null>(null);
 
   const [selection, setSelection] = useState({start: 0, end: 0});
 
@@ -349,17 +362,25 @@ const Mentions: FC<MentionsProps> = (
      *
      * Not working now due to the RN bug
      */
-    // const newCursorPosition = currentPart.position.start + triggerPartIndex + trigger.length + suggestion.name.length + 1;
+    // const newCursorPosition = currentPart.position.start + triggerPartIndex + trigger.length +
+    // suggestion.name.length + 1;
 
     // textInput.current?.setNativeProps({selection: {start: newCursorPosition, end: newCursorPosition}});
   };
+
+  const handleTextInputRef = (ref: TextInput) => {
+    textInput.current = ref as TextInput;
+    if (propInputRef) propInputRef.current = ref as TextInput;
+  }
 
   return (
     <View>
       {renderSuggestions(keyword, onMentionSuggestionPress)}
 
       <TextInput
-        ref={textInput}
+        {...textInputProps}
+
+        ref={handleTextInputRef}
 
         multiline
 
