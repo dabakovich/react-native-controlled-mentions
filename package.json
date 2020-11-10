@@ -6,8 +6,9 @@
     "prepublish": "tsc",
     "build": "tsc"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "files": ["./dist"],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dabakovich/react-native-controlled-mentions.git"

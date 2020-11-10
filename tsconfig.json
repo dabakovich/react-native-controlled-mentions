@@ -5,22 +5,29 @@
     "module": "commonjs",
 
     "lib": [
-      "es2017",
-      "es7",
-      "es6",
-      "dom"
+      "es7"
     ],
 
     "declaration": true,
 
-    "outDir": "dist",
+    "outDir": "./dist",
+
+    "sourceMap": true,
 
     "strict": true,
 
     "esModuleInterop": true,
 
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+
     "jsx": "react-native"
   },
+
+  "include": [
+    "./src/**/*"
+  ],
 
   "exclude": [
     "node_modules",
