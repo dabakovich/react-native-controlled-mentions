@@ -53,7 +53,7 @@ type MentionsProps = Omit<TextInputProps, 'onChange'> & {
   value: string;
   onChange: (value: string) => any;
 
-  renderSuggestions: (props: MentionSuggestionsProps) => ReactNode;
+  renderSuggestions?: (props: MentionSuggestionsProps) => ReactNode;
 
   // Character that will trigger mentions (usually '@')
   trigger?: string;
@@ -386,7 +386,7 @@ const Mentions: FC<MentionsProps> = (
 
   return (
     <View style={containerStyle}>
-      {renderSuggestions({keyword, onSuggestionPress: onMentionSuggestionPress})}
+      {renderSuggestions && renderSuggestions({keyword, onSuggestionPress: onMentionSuggestionPress})}
 
       <TextInput
         {...textInputProps}
