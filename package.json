@@ -1,12 +1,12 @@
 {
   "name": "react-native-controlled-mentions",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Fully controlled React Native mentions component",
   "scripts": {
     "prepublish": "tsc",
     "build": "tsc"
   },
-  "files": ["./dist"],
+  "files": ["dist"],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "repository": {
