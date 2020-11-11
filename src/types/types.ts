@@ -46,9 +46,9 @@ type MentionsProps = Omit<TextInputProps, 'onChange'> & {
   // Character that will trigger mentions (usually '@')
   trigger?: string;
 
-  containerStyle?: StyleProp<ViewStyle>;
-
   inputRef?: MutableRefObject<TextInput | null>;
+
+  containerStyle?: StyleProp<ViewStyle>;
 };
 
 export {

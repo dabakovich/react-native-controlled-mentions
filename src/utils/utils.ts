@@ -2,7 +2,7 @@ import { MentionData, Part, RegexMatchResult, Suggestion } from '../types';
 // @ts-ignore
 import matchAll from 'string.prototype.matchall';
 
-const mentionRegEx = /(?<original>@\[(?<name>[A-Za-z0-9_ ]*)]\((?<id>([0-9]*))\))/gi;
+const mentionRegEx = /(?<original>@\[(?<name>[A-Za-z0-9_\- ]*)]\((?<id>([0-9]*))\))/gi;
 
 const getPart = (text: string, positionOffset = 0): Part => ({
   text,

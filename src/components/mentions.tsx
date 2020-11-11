@@ -270,7 +270,7 @@ const Mentions: FC<MentionsProps> = (
       >
         <Text>
           {parts.map(({text, data}, index) => (
-            <Text key={index} style={data ? {fontWeight: 'bold', color: '#006ed4'} : {}}>
+            <Text key={index} style={data ? {fontWeight: 'bold', color: '#4f69f3'} : {}}>
               {text}
             </Text>
           ))}

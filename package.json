@@ -2,6 +2,13 @@
   "name": "react-native-controlled-mentions",
   "version": "0.0.16",
   "description": "Fully controlled React Native mentions component",
+  "keywords": [
+    "react",
+    "react-native",
+    "mentions",
+    "text",
+    "text-input"
+  ],
   "scripts": {
     "prepare": "tsc",
     "build": "tsc"
