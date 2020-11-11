@@ -18,11 +18,13 @@
 
     "esModuleInterop": true,
 
+    "allowSyntheticDefaultImports": true,
+
     "typeRoots": [
       "node_modules/@types"
     ],
 
-    "jsx": "react-native"
+    "jsx": "react"
   },
 
   "include": [

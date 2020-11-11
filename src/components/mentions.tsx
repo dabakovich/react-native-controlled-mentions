@@ -1,3 +1,4 @@
+import React, { FC, MutableRefObject, ReactNode, useMemo, useRef, useState } from 'react';
 import {
   NativeSyntheticEvent,
   StyleProp,
@@ -8,7 +9,6 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import React, { FC, MutableRefObject, ReactNode, useMemo, useRef, useState } from 'react';
 
 // @ts-ignore
 import matchAll from 'string.prototype.matchall';
@@ -422,5 +422,4 @@ const Mentions: FC<MentionsProps> = (
   );
 };
 
-export { Mentions };
-export type { Suggestion, MentionSuggestionsProps };
+export { Mentions, Suggestion, MentionSuggestionsProps };

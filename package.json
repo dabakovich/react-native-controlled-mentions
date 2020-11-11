@@ -1,12 +1,14 @@
 {
   "name": "react-native-controlled-mentions",
-  "version": "0.0.3",
+  "version": "0.0.13",
   "description": "Fully controlled React Native mentions component",
   "scripts": {
     "prepublish": "tsc",
     "build": "tsc"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "repository": {
@@ -16,9 +18,11 @@
   "author": "David Tabaka <dabakovich@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "@types/react": "^16.9.56",
-    "@types/react-native": "^0.63.33",
-    "typescript": "^4.0.5"
+    "@types/react-native": "0.63.2",
+    "typescript": "4.0.5"
   },
-  "dependencies": {}
+  "peerDependencies": {
+    "react": ">=16.0",
+    "react-native": ">=0.57"
+  }
 }
