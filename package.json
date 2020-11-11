@@ -1,6 +1,6 @@
 {
   "name": "react-native-controlled-mentions",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "Fully controlled React Native mentions component",
   "scripts": {
     "prepare": "tsc",
