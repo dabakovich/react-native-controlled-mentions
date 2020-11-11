@@ -1,69 +1,8 @@
-import React, { FC, MutableRefObject, ReactNode, useMemo, useRef, useState } from 'react';
-import {
-  NativeSyntheticEvent,
-  StyleProp,
-  Text,
-  TextInput,
-  TextInputProps,
-  TextInputSelectionChangeEventData,
-  View,
-  ViewStyle,
-} from 'react-native';
+import React, { FC, useMemo, useRef, useState } from 'react';
+import { NativeSyntheticEvent, Text, TextInput, TextInputSelectionChangeEventData, View } from 'react-native';
 
-// @ts-ignore
-import matchAll from 'string.prototype.matchall';
-
-type Suggestion = {
-  id: string;
-  name: string;
-};
-
-type MentionData = {
-  id: string;
-  name: string;
-  original: string;
-};
-
-type RegexMatchResult = {
-  // Start position of matched text in whole string
-  index: number;
-
-  // Group names (duplicates MentionData type)
-  groups: MentionData;
-};
-
-// The same as text selection state
-type Position = {
-  start: number;
-  end: number;
-};
-
-type Part = {
-  text: string;
-  position: Position;
-  data?: MentionData;
-};
-
-type MentionSuggestionsProps = {
-  keyword: string | undefined;
-  onSuggestionPress: (suggestion: Suggestion) => void;
-};
-
-type MentionsProps = Omit<TextInputProps, 'onChange'> & {
-  value: string;
-  onChange: (value: string) => any;
-
-  renderSuggestions?: (props: MentionSuggestionsProps) => ReactNode;
-
-  // Character that will trigger mentions (usually '@')
-  trigger?: string;
-
-  containerStyle?: StyleProp<ViewStyle>;
-
-  inputRef?: MutableRefObject<TextInput | null>;
-};
-
-const reg = /(?<original>@\[(?<name>[A-Za-z0-9_ ]*)]\((?<id>([0-9]*))\))/gi;
+import { MentionsProps, Position, Suggestion } from '../types';
+import { getMentionPart, getMentionValue, getPart, getParts, getValue } from '../utils';
 
 const Mentions: FC<MentionsProps> = (
   {
@@ -85,88 +24,7 @@ const Mentions: FC<MentionsProps> = (
 
   const [selection, setSelection] = useState({start: 0, end: 0});
 
-  const getPart = (text: string, positionOffset = 0): Part => ({
-    text,
-    position: {
-      start: positionOffset,
-      end: positionOffset + text.length,
-    },
-  });
-
-  const getMentionPart = (mention: MentionData, positionOffset = 0): Part => {
-    const text = `${trigger}${mention.name}`;
-
-    return {
-      text,
-      position: {
-        start: positionOffset,
-        end: positionOffset + text.length,
-      },
-      data: mention,
-    };
-  };
-
-  const getMentionValue = (suggestion: Suggestion) => `@[${suggestion.name}](${suggestion.id})`;
-
-  const toValue = (parts: Part[]) => parts.map(item => (item.data ? item.data.original : item.text)).join('');
-
-  const toParts = (newValue: string) => {
-    const results: RegexMatchResult[] = Array.from(matchAll(newValue ?? '', reg));
-    const parts: Part[] = [];
-
-    let plainText = '';
-
-    // In case when we don't have any mentions we just return the only one part with plain text
-    if (results.length == 0) {
-      parts.push(getPart(newValue, 0));
-
-      plainText += newValue;
-
-      return {
-        parts,
-        plainText,
-      };
-    }
-
-    // In case when we have some text before first mention
-    if (results[0].index != 0) {
-      const text = value.substr(0, results[0].index);
-
-      parts.push(getPart(text, 0));
-
-      plainText += text;
-    }
-
-    for (let i = 0; i < results.length; i++) {
-      const result = results[i];
-
-      const mentionPart = getMentionPart(result.groups, plainText.length);
-
-      parts.push(mentionPart);
-
-      plainText += mentionPart.text;
-
-      if ((result.index + result.groups.original.length) !== value.length) {
-        const isLastResult = i == results.length - 1;
-
-        const text = value.slice(
-          result.index + result.groups.original.length,
-          isLastResult ? undefined : results[i + 1].index,
-        );
-
-        parts.push(getPart(text, plainText.length));
-
-        plainText += text;
-      }
-    }
-
-    return {
-      plainText,
-      parts: parts.filter(item => item.text),
-    };
-  };
-
-  const {plainText, parts} = useMemo(() => toParts(value), [value]);
+  const {plainText, parts} = useMemo(() => getParts(trigger, value), [value]);
 
   const onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
     setSelection(event.nativeEvent.selection);
@@ -213,7 +71,7 @@ const Mentions: FC<MentionsProps> = (
       if (currentPart.data != null) {
         // In case when we added text at the end of mention
         if (currentPart.position.end === selection.end) {
-          onChange(toValue([
+          onChange(getValue([
             ...parts.slice(0, currentPartIndex),
             currentPart,
             getPart(addedText, selection.end),
@@ -231,7 +89,7 @@ const Mentions: FC<MentionsProps> = (
         currentPart.text.substring(addedTextPartPositionBeforeChange),
       ].join('');
 
-      onChange(toValue(parts));
+      onChange(getValue(parts));
 
       return;
     }
@@ -275,7 +133,7 @@ const Mentions: FC<MentionsProps> = (
           return one;
         });
 
-      onChange(toValue(newParts));
+      onChange(getValue(newParts));
 
       return;
     }
@@ -365,7 +223,7 @@ const Mentions: FC<MentionsProps> = (
 
       // Create part with string before mention
       getPart(currentPart.text.substring(0, newMentionPart.start)),
-      getMentionPart({
+      getMentionPart(trigger, {
         ...suggestion,
         original: getMentionValue(suggestion),
       }),
@@ -375,7 +233,7 @@ const Mentions: FC<MentionsProps> = (
       ...parts.slice(currentPartIndex + 1),
     ];
 
-    onChange(toValue(newParts));
+    onChange(getValue(newParts));
 
     /**
      * Move cursor to the end of just added mention starting from trigger string and including:
@@ -422,4 +280,4 @@ const Mentions: FC<MentionsProps> = (
   );
 };
 
-export { Mentions, Suggestion, MentionSuggestionsProps };
+export { Mentions };
