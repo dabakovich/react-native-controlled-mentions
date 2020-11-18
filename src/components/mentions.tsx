@@ -1,5 +1,12 @@
 import React, { FC, useMemo, useRef, useState } from 'react';
-import { NativeSyntheticEvent, Text, TextInput, TextInputSelectionChangeEventData, View } from 'react-native';
+import {
+  NativeSyntheticEvent,
+  Platform,
+  Text,
+  TextInput,
+  TextInputSelectionChangeEventData,
+  View,
+} from 'react-native';
 
 import { MentionsProps, Position, Suggestion } from '../types';
 import { getMentionPart, getMentionValue, getPart, getParts, getValue } from '../utils';
@@ -58,23 +65,30 @@ const Mentions: FC<MentionsProps> = (
 
     // In case when we add new characters
     if (isAdded) {
+      /**
+       * On iOS selection changes fires before text change fires.
+       * So here we have already new cursor position on iOS.
+       * But also we have old position (before change) on Android
+       */
+      const addedTextPosition = Platform.OS === 'ios' ? selection.end - difference : selection.end;
+
       // Finding part where text was added
-      const currentPartIndex = parts.findIndex(one => selection.end >= one.position.start && selection.end <= one.position.end);
+      const currentPartIndex = parts.findIndex(one => addedTextPosition >= one.position.start && addedTextPosition <= one.position.end);
       const currentPart = parts[currentPartIndex];
 
       if (!currentPart) return;
 
-      const addedTextPartPositionBeforeChange = selection.end - currentPart.position.start;
-      const addedText = text.substring(selection.end, selection.end + difference);
+      const addedTextPartPositionBeforeChange = addedTextPosition - currentPart.position.start;
+      const addedText = text.substring(addedTextPosition, addedTextPosition + difference);
 
       // In case when user edited mention we remove mention
       if (currentPart.data != null) {
         // In case when we added text at the end of mention
-        if (currentPart.position.end === selection.end) {
+        if (currentPart.position.end === addedTextPosition) {
           onChange(getValue([
             ...parts.slice(0, currentPartIndex),
             currentPart,
-            getPart(addedText, selection.end),
+            getPart(addedText, addedTextPosition),
             ...parts.slice(currentPartIndex + 1),
           ]));
 
@@ -96,7 +110,15 @@ const Mentions: FC<MentionsProps> = (
 
     // In case when we remove characters
     if (!isAdded) {
-      const removedTextPosition: Position = {
+      /**
+       * On iOS selection changes fires before text change fires.
+       * So here we have already new cursor position on iOS.
+       * But also we have old position (before change) on Android
+       */
+      const removedTextPosition: Position = Platform.OS === 'ios' ? {
+        start: selection.end,
+        end: selection.end + difference,
+      } : {
         start: selection.end - difference,
         end: selection.end,
       };
@@ -256,7 +278,10 @@ const Mentions: FC<MentionsProps> = (
 
   return (
     <View style={containerStyle}>
-      {renderSuggestions && renderSuggestions({keyword, onSuggestionPress: onMentionSuggestionPress})}
+      {renderSuggestions && renderSuggestions({
+        keyword,
+        onSuggestionPress: onMentionSuggestionPress,
+      })}
 
       <TextInput
         {...textInputProps}
