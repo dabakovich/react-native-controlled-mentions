@@ -90,5 +90,6 @@ The `Mentions` component supports next props:
 
 ### Known issues
 * Mention names not works with local characters (that are not in range a-z and A-Z)
+* Mention name regex accepts white spaces
 * Keyboard auto-correction not working if suggested word has the same length
 * Text becomes transparent when setting custom font size in TextInput
