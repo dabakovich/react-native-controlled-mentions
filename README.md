@@ -89,6 +89,6 @@ The `Mentions` component supports next props:
 | containerStyle    | StyleProp<ViewStyle>                              | false    |               |             |
 
 ### Known issues
-* Mention name regex accepts white spaces
+* Mention name regex accepts white spaces (eg `{name: ' ', value: 1}`)
 * Keyboard auto-correction not working if suggested word has the same length
 * Text becomes transparent when setting custom font size in TextInput
