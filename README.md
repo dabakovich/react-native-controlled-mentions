@@ -89,4 +89,6 @@ The `Mentions` component supports next props:
 | containerStyle    | StyleProp<ViewStyle>                              | false    |               |             |
 
 ### Known issues
+* Mention names not works with local characters (that are not in range a-z and A-Z)
+* Keyboard auto-correction not working if suggested word has the same length
 * Text becomes transparent when setting custom font size in TextInput
