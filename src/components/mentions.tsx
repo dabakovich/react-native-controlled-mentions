@@ -51,113 +51,136 @@ const Mentions: FC<MentionsProps> = (
    * - Remove all parts that was fully affected
    * - Update parts that was affected partly
    * - Remove mention data if partly affected parts is mentions
+   *
+   * On replaced some text we should:
+   * - Find start position of changed text
+   * - Find all affected parts
+   * - Update parts that was affected
+   * - Remove mention data if some part is mention
+   *
+   * NEW FLOW PROTOTYPE
    * @param text
    */
   const onChangeInput = (text: string) => {
     // How much symbols was added or removed
-    const difference = Math.abs(text.length - plainText.length);
+    const difference = text.length - plainText.length;
 
-    // In case when nothing changed - just exit
-    if (difference === 0) return;
+    switch (true) {
+      // In case when we add new characters
+      case difference > 0: {
+        /**
+         * On iOS selection changes fires before text change fires.
+         * So here we have already new cursor position on iOS.
+         * But also we have old position (before change) on Android
+         */
+        const addedTextPosition = Platform.OS === 'ios' ? selection.end - difference : selection.end;
 
-    // Was symbols added or removed
-    const isAdded = (text.length - plainText.length) > 0;
+        // Finding part where text was added
+        const currentPartIndex = parts.findIndex(one => addedTextPosition >= one.position.start && addedTextPosition <= one.position.end);
+        const currentPart = parts[currentPartIndex];
 
-    // In case when we add new characters
-    if (isAdded) {
-      /**
-       * On iOS selection changes fires before text change fires.
-       * So here we have already new cursor position on iOS.
-       * But also we have old position (before change) on Android
-       */
-      const addedTextPosition = Platform.OS === 'ios' ? selection.end - difference : selection.end;
+        if (!currentPart) return;
 
-      // Finding part where text was added
-      const currentPartIndex = parts.findIndex(one => addedTextPosition >= one.position.start && addedTextPosition <= one.position.end);
-      const currentPart = parts[currentPartIndex];
+        const addedTextPartPositionBeforeChange = addedTextPosition - currentPart.position.start;
+        const addedText = text.substring(addedTextPosition, addedTextPosition + difference);
 
-      if (!currentPart) return;
+        // In case when user edited mention we remove mention
+        if (currentPart.data != null) {
+          // In case when we added text at the end of mention
+          if (currentPart.position.end === addedTextPosition) {
+            onChange(getValue([
+              ...parts.slice(0, currentPartIndex),
+              currentPart,
+              getPart(addedText, addedTextPosition),
+              ...parts.slice(currentPartIndex + 1),
+            ]));
 
-      const addedTextPartPositionBeforeChange = addedTextPosition - currentPart.position.start;
-      const addedText = text.substring(addedTextPosition, addedTextPosition + difference);
-
-      // In case when user edited mention we remove mention
-      if (currentPart.data != null) {
-        // In case when we added text at the end of mention
-        if (currentPart.position.end === addedTextPosition) {
-          onChange(getValue([
-            ...parts.slice(0, currentPartIndex),
-            currentPart,
-            getPart(addedText, addedTextPosition),
-            ...parts.slice(currentPartIndex + 1),
-          ]));
-
-          return;
+            return;
+          }
+          currentPart.data = undefined;
         }
-        currentPart.data = undefined;
+
+        currentPart.text = [
+          currentPart.text.substring(0, addedTextPartPositionBeforeChange),
+          addedText,
+          currentPart.text.substring(addedTextPartPositionBeforeChange),
+        ].join('');
+
+        onChange(getValue(parts));
+
+        return;
       }
 
-      currentPart.text = [
-        currentPart.text.substring(0, addedTextPartPositionBeforeChange),
-        addedText,
-        currentPart.text.substring(addedTextPartPositionBeforeChange),
-      ].join('');
+      // In case when we remove characters
+      case difference < 0: {
+        /**
+         * On iOS selection changes fires before text change fires.
+         * So here we have already new cursor position on iOS.
+         * But also we have old position (before change) on Android
+         */
+        const removedTextPosition: Position = Platform.OS === 'ios' ? {
+          start: selection.end,
+          end: selection.end + Math.abs(difference),
+        } : {
+          start: selection.end - Math.abs(difference),
+          end: selection.end,
+        };
 
-      onChange(getValue(parts));
+        const newParts = parts
 
-      return;
-    }
+          // Filter fully removed parts
+          .filter(one => one.position.start < removedTextPosition.start || one.position.end > removedTextPosition.end)
 
-    // In case when we remove characters
-    if (!isAdded) {
-      /**
-       * On iOS selection changes fires before text change fires.
-       * So here we have already new cursor position on iOS.
-       * But also we have old position (before change) on Android
-       */
-      const removedTextPosition: Position = Platform.OS === 'ios' ? {
-        start: selection.end,
-        end: selection.end + difference,
-      } : {
-        start: selection.end - difference,
-        end: selection.end,
-      };
+          // Update partly affected parts
+          .map((one) => {
+            if (
+              removedTextPosition.start >= one.position.start && removedTextPosition.start < one.position.end
+              || removedTextPosition.end > one.position.start && removedTextPosition.end <= one.position.end
+            ) {
+              const positionOffset = one.position.start;
 
-      const newParts = parts
+              const removedTextPartPosition: Position = {
+                start: Math.max(removedTextPosition.start, one.position.start) - positionOffset,
+                end: Math.min(removedTextPosition.end, one.position.end) - positionOffset,
+              };
 
-        // Filter fully removed parts
-        .filter(one => one.position.start < removedTextPosition.start || one.position.end > removedTextPosition.end)
+              one.text = [
+                one.text.substring(0, removedTextPartPosition.start),
+                one.text.substring(removedTextPartPosition.end),
+              ].join('');
 
-        // Update partly affected parts
-        .map((one) => {
-          if (
-            removedTextPosition.start >= one.position.start && removedTextPosition.start < one.position.end
-            || removedTextPosition.end > one.position.start && removedTextPosition.end <= one.position.end
-          ) {
-            const positionOffset = one.position.start;
-
-            const removedTextPartPosition: Position = {
-              start: Math.max(removedTextPosition.start, one.position.start) - positionOffset,
-              end: Math.min(removedTextPosition.end, one.position.end) - positionOffset,
-            };
-
-            one.text = [
-              one.text.substring(0, removedTextPartPosition.start),
-              one.text.substring(removedTextPartPosition.end),
-            ].join('');
-
-            // In case when user edited mention we remove mention
-            if (one.data) {
-              one.data = undefined;
+              // In case when user edited mention we remove mention
+              if (one.data) {
+                one.data = undefined;
+              }
             }
-          }
 
-          return one;
+            return one;
+          });
+
+        onChange(getValue(newParts));
+
+        return;
+      }
+
+      // In case when we replaced some characters
+      case difference === 0:
+      default: {
+        console.log('onChangeInput -> REPLACED');
+        console.log('selection when text was replaced');
+        console.log(selection);
+
+        const replacedTextPosition: Position = {
+          start: selection.start,
+          end: selection.end,
+        };
+
+        const startReplacedPosition = Array.from(plainText).findIndex((char, index) => {
+          return text.charAt(index) !== char;
         });
 
-      onChange(getValue(newParts));
-
-      return;
+        console.log(startReplacedPosition);
+      }
     }
   };
 
