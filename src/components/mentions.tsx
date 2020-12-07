@@ -294,10 +294,10 @@ const Mentions: FC<MentionsProps> = (
         onSelectionChange={onSelectionChange}
       >
         <Text>
-          {parts.map(({text, data}, index) => (
-            <Text key={index} style={data ? {fontWeight: 'bold', color: '#4f69f3'} : {}}>
-              {text}
-            </Text>
+          {parts.map(({text, data}, index) => data ? (
+            <Text key={`${index}-m`} style={{fontWeight: 'bold', color: '#4f69f3'}}>{text}</Text>
+          ) : (
+            <Text key={index}>{text}</Text>
           ))}
         </Text>
       </TextInput>
