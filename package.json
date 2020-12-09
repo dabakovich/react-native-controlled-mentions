@@ -25,11 +25,15 @@
   "author": "David Tabaka <dabakovich@gmail.com>",
   "license": "MIT",
   "devDependencies": {
+    "@types/diff": "^4.0.2",
     "@types/react-native": "0.63.2",
     "typescript": "4.0.5"
   },
   "peerDependencies": {
     "react": ">=16.0",
     "react-native": ">=0.57"
+  },
+  "dependencies": {
+    "diff": "5.0.0"
   }
 }

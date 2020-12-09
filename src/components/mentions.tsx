@@ -1,7 +1,6 @@
 import React, { FC, useMemo, useRef, useState } from 'react';
 import {
   NativeSyntheticEvent,
-  Platform,
   Text,
   TextInput,
   TextInputSelectionChangeEventData,
@@ -9,7 +8,14 @@ import {
 } from 'react-native';
 
 import { MentionsProps, Position, Suggestion } from '../types';
-import { getMentionPart, getMentionValue, getPart, getParts, getValue } from '../utils';
+import {
+  getChangedPositions,
+  getMentionPart,
+  getMentionValue,
+  getPart,
+  getParts,
+  getValue,
+} from '../utils';
 
 const Mentions: FC<MentionsProps> = (
   {
@@ -38,110 +44,43 @@ const Mentions: FC<MentionsProps> = (
   };
 
   /**
-   * Callback that trigger on TextInput text change.
-   * We detecting is there added text or removed.
+   * Callback that trigger on TextInput text change
+   * We should:
    *
-   * On added text we should:
-   * - Find affected part
-   * - Include added text
-   * - Remove mention data if the part is mention
+   * - Find all change positions
    *
-   * On removed text we should:
-   * - Find all affected parts
-   * - Remove all parts that was fully affected
-   * - Update parts that was affected partly
-   * - Remove mention data if partly affected parts is mentions
+   * - Remove all parts that was fully deleted
+   * - Update parts that was partly deleted
    *
-   * On replaced some text we should:
-   * - Find start position of changed text
-   * - Find all affected parts
-   * - Update parts that was affected
-   * - Remove mention data if some part is mention
+   * - Update parts that has added stuff
    *
-   * NEW FLOW PROTOTYPE
+   * - Remove mention data if some affected part is mention
    * @param text
    */
   const onChangeInput = (text: string) => {
-    // How much symbols was added or removed
-    const difference = text.length - plainText.length;
+    const changePositions = getChangedPositions(plainText, text);
 
-    switch (true) {
-      // In case when we add new characters
-      case difference > 0: {
-        /**
-         * On iOS selection changes fires before text change fires.
-         * So here we have already new cursor position on iOS.
-         * But also we have old position (before change) on Android
-         */
-        const addedTextPosition = Platform.OS === 'ios' ? selection.end - difference : selection.end;
+    let newParts = parts;
 
-        // Finding part where text was added
-        const currentPartIndex = parts.findIndex(one => addedTextPosition >= one.position.start && addedTextPosition <= one.position.end);
-        const currentPart = parts[currentPartIndex];
-
-        if (!currentPart) return;
-
-        const addedTextPartPositionBeforeChange = addedTextPosition - currentPart.position.start;
-        const addedText = text.substring(addedTextPosition, addedTextPosition + difference);
-
-        // In case when user edited mention we remove mention
-        if (currentPart.data != null) {
-          // In case when we added text at the end of mention
-          if (currentPart.position.end === addedTextPosition) {
-            onChange(getValue([
-              ...parts.slice(0, currentPartIndex),
-              currentPart,
-              getPart(addedText, addedTextPosition),
-              ...parts.slice(currentPartIndex + 1),
-            ]));
-
-            return;
-          }
-          currentPart.data = undefined;
-        }
-
-        currentPart.text = [
-          currentPart.text.substring(0, addedTextPartPositionBeforeChange),
-          addedText,
-          currentPart.text.substring(addedTextPartPositionBeforeChange),
-        ].join('');
-
-        onChange(getValue(parts));
-
-        return;
-      }
-
-      // In case when we remove characters
-      case difference < 0: {
-        /**
-         * On iOS selection changes fires before text change fires.
-         * So here we have already new cursor position on iOS.
-         * But also we have old position (before change) on Android
-         */
-        const removedTextPosition: Position = Platform.OS === 'ios' ? {
-          start: selection.end,
-          end: selection.end + Math.abs(difference),
-        } : {
-          start: selection.end - Math.abs(difference),
-          end: selection.end,
-        };
-
-        const newParts = parts
+    // Process deleting changes
+    if (changePositions.deleted.length) {
+      changePositions.deleted.forEach(({start, end}) => {
+        newParts = newParts
 
           // Filter fully removed parts
-          .filter(one => one.position.start < removedTextPosition.start || one.position.end > removedTextPosition.end)
+          .filter(one => one.position.start < start || one.position.end > end)
 
           // Update partly affected parts
           .map((one) => {
             if (
-              removedTextPosition.start >= one.position.start && removedTextPosition.start < one.position.end
-              || removedTextPosition.end > one.position.start && removedTextPosition.end <= one.position.end
+              start >= one.position.start && start < one.position.end
+              || end > one.position.start && end <= one.position.end
             ) {
               const positionOffset = one.position.start;
 
               const removedTextPartPosition: Position = {
-                start: Math.max(removedTextPosition.start, one.position.start) - positionOffset,
-                end: Math.min(removedTextPosition.end, one.position.end) - positionOffset,
+                start: Math.max(start, one.position.start) - positionOffset,
+                end: Math.min(end, one.position.end) - positionOffset,
               };
 
               one.text = [
@@ -151,37 +90,52 @@ const Mentions: FC<MentionsProps> = (
 
               // In case when user edited mention we remove mention
               if (one.data) {
-                one.data = undefined;
+                delete one.data;
               }
             }
 
             return one;
           });
-
-        onChange(getValue(newParts));
-
-        return;
-      }
-
-      // In case when we replaced some characters
-      case difference === 0:
-      default: {
-        console.log('onChangeInput -> REPLACED');
-        console.log('selection when text was replaced');
-        console.log(selection);
-
-        const replacedTextPosition: Position = {
-          start: selection.start,
-          end: selection.end,
-        };
-
-        const startReplacedPosition = Array.from(plainText).findIndex((char, index) => {
-          return text.charAt(index) !== char;
-        });
-
-        console.log(startReplacedPosition);
-      }
+      });
     }
+
+    // Process adding changes
+    if (changePositions.added.length) {
+      changePositions.added.forEach(({start, value}) => {
+        // Finding part where text was added
+        const partWithAdditionIndex = newParts.findIndex(one => start >= one.position.start && start <= one.position.end);
+        const partWithAddition = newParts[partWithAdditionIndex];
+
+        if (!partWithAddition) return;
+
+        const addedTextPartPositionBeforeChange = start - partWithAddition.position.start;
+
+        // In case when user edited mention we remove mention
+        if (partWithAddition.data != null) {
+          // In case when we added text at the end of mention
+          if (partWithAddition.position.end === start) {
+            newParts = [
+              ...newParts.slice(0, partWithAdditionIndex),
+              partWithAddition,
+              getPart(value, start),
+              ...newParts.slice(partWithAdditionIndex + 1),
+            ]
+
+            return;
+          }
+
+          delete partWithAddition.data;
+        }
+
+        partWithAddition.text = [
+          partWithAddition.text.substring(0, addedTextPartPositionBeforeChange),
+          value,
+          partWithAddition.text.substring(addedTextPartPositionBeforeChange),
+        ].join('');
+      });
+    }
+
+    onChange(getValue(newParts));
   };
 
   /**

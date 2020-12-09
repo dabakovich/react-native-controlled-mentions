@@ -1,8 +1,64 @@
-import { MentionData, Part, RegexMatchResult, Suggestion } from '../types';
-// @ts-ignore
+import { Change, diffChars } from 'diff';
+// @ts-ignore the lib do not have TS declarations yet
 import matchAll from 'string.prototype.matchall';
+import { MentionData, Part, Position, RegexMatchResult, Suggestion } from '../types';
 
 const mentionRegEx = /(?<original>@\[(?<name>.+)]\((?<id>([0-9]*))\))/gi;
+
+type CharactersDiffChange = Omit<Change, 'count'> & { count: number };
+
+/**
+ * Function that finding all changes between two strings;
+ *
+ * @param originalText
+ * @param changedText
+ * @returns Deleted and added positions relates to original string
+ */
+const getChangedPositions = (originalText: string, changedText: string) => {
+  const changes = diffChars(originalText, changedText) as CharactersDiffChange[];
+
+  const changePositions: {
+    deleted: Position[];
+    added: {
+      start: number;
+      value: string;
+    }[];
+  } = {
+    deleted: [],
+    added: [],
+  };
+
+  let originalCursor = 0;
+
+  changes.forEach(({count, removed, added, value}) => {
+    switch (true) {
+      case removed: {
+        changePositions.deleted.push({
+          start: originalCursor,
+          end: originalCursor + count,
+        });
+        originalCursor += count;
+
+        return;
+      }
+
+      case added: {
+        changePositions.added.push({
+          start: originalCursor,
+          value,
+        });
+
+        return;
+      }
+
+      default: {
+        originalCursor += count;
+      }
+    }
+  });
+
+  return changePositions;
+};
 
 const getPart = (text: string, positionOffset = 0): Part => ({
   text,
@@ -94,7 +150,9 @@ const getParts = (trigger: string, value: string) => {
  *
  * @param parts
  */
-const getValue = (parts: Part[]) => parts.map(item => (item.data ? item.data.original : item.text)).join('');
+const getValue = (parts: Part[]) => parts
+  .map(item => (item.data ? item.data.original : item.text))
+  .join('');
 
 /**
  * Replace all mention values in value to some specified format
@@ -107,4 +165,13 @@ const replaceMentionValues = (
   replacer: (mention: MentionData) => string,
 ) => value.replace(mentionRegEx, (mention, original, name, id) => replacer({original, name, id}));
 
-export { mentionRegEx, getPart, getMentionPart, getMentionValue, getParts, getValue, replaceMentionValues };
+export {
+  mentionRegEx,
+  getChangedPositions,
+  getPart,
+  getMentionPart,
+  getMentionValue,
+  getParts,
+  getValue,
+  replaceMentionValues,
+};
