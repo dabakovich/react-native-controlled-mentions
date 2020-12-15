@@ -1,6 +1,15 @@
 React Native Controlled Mentions
 -
 
+### About
+
+Pretty simple and fully controlled mentions input. It can:
+
+* Gracefully render formatted mentions directly in RN `TextInput` component
+* Use `value`/`onChange` as in usual `TextInput` props
+* Completely typed (written on TypeScript)
+* No need native libraries
+
 ### Getting started
 
 Install the library using either Yarn:
@@ -13,10 +22,13 @@ or npm:
 
 ### Example
 
-```
-import React, { FC, useState } from 'react';
+Try it on Expo Snack: https://snack.expo.io/@dabakovich/mentionsapp
+
+```tsx
+import * as React from 'react';
+import { FC, useState } from 'react';
 import { Mentions, Suggestion } from 'react-native-controlled-mentions';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, SafeAreaView, Text, View } from 'react-native';
 
 const suggestions = [
   {id: '1', name: 'David Tabaka'},
@@ -45,7 +57,7 @@ const MentionSuggestions: FC<MentionSuggestionsProps> = (
       .map(suggestion => (
         <Pressable
           key={suggestion.id}
-          style={{padding: 8}}
+          style={{padding: 12}}
           onPress={() => onSuggestionPress(suggestion)}
         >
           <Text>{suggestion.name}</Text>
@@ -56,25 +68,30 @@ const MentionSuggestions: FC<MentionSuggestionsProps> = (
 ) : null;
 
 const App = () => {
-  const [value, setValue] = useState('Hello @[David Tabaka](5)! How are you?');
+  const [value, setValue] = useState('Hello @[Mary](2)! How are you?');
 
   return (
-    <Mentions
-      value={value}
-      onChange={setValue}
+    <SafeAreaView>
+      <Mentions
+        value={value}
+        onChange={setValue}
 
-      renderSuggestions={({keyword, onSuggestionPress}) => (
-        <MentionSuggestions
-          keyword={keyword}
-          suggestions={suggestions}
-          onSuggestionPress={onSuggestionPress}
-        />
-      )}
-    />
+        renderSuggestions={({keyword, onSuggestionPress}) => (
+          <MentionSuggestions
+            keyword={keyword}
+            suggestions={suggestions}
+            onSuggestionPress={onSuggestionPress}
+          />
+        )}
+
+        placeholder="Type here..."
+        style={{padding: 12}}
+      />
+    </SafeAreaView>
   );
 };
 
-export { App };
+export default App;
 ```
 
 ### Configuration
@@ -90,6 +107,31 @@ The `Mentions` component supports next props:
 | inputRef          | TextInput                                         | false    |               |                                   |
 | containerStyle    | StyleProp\<ViewStyle>                             | false    |               |                                   |
 | ...textInputProps | TextInputProps                                    | false    |               |  Other text input props           |
+
+### Parsing `Mention`'s value
+
+You can import RegEx that is using in the component and then extract all your mentions
+from `Mention`'s value using your own logic.
+
+```ts
+import { mentionRegEx } from 'react-native-controlled-mentions';
+```
+
+Or you can use `replaceMentionValues` helper to replace all mentions from `Mention`'s input using
+your replacer function that receives `MentionData` type and returns string.
+
+```ts
+import { replaceMentionValues } from 'react-native-controlled-mentions';
+
+const value = 'Hello @[David Tabaka](5)! How are you?';
+
+console.log(replaceMentionValues(value, ({id}) => `@${id}`)); // Hello @5! How are you?
+console.log(replaceMentionValues(value, ({name}) => `@${name}`)); // Hello @David Tabaka! How are you?
+```
+
+### To Do
+* Add more customizations
+* Add ability to handle few mention types ("#", "@" etc)
 
 ### Known issues
 
