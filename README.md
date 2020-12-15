@@ -2,6 +2,7 @@ React Native Controlled Mentions
 -
 
 ### Getting started
+
 Install the library using either Yarn:
 
 ``yarn add react-native-controlled-mentions``
@@ -77,18 +78,21 @@ export { App };
 ```
 
 ### Configuration
+
 The `Mentions` component supports next props:
 
-| Prop name         | Type                                              | Required | Default value | Description |
-|-------------------|---------------------------------------------------|----------|---------------|-------------|
-| value             | string                                            | true     |               |             |
-| onChange          | function (value)                                  | true     |               |             |
-| renderSuggestions | function ({keyword, onSuggestionPress}) ReactNode | false    |               |             |
-| trigger           | string                                            | false    | '@'           |             |
-| inputRef          | TextInput                                         | false    |               |             |
-| containerStyle    | StyleProp<ViewStyle>                              | false    |               |             |
+| Prop name         | Type                                              | Required | Default value | Description                       |
+|-------------------|---------------------------------------------------|----------|---------------|-----------------------------------|
+| value             | string                                            | true     |               |                                   |
+| onChange          | function (value)                                  | true     |               |                                   |
+| renderSuggestions | function ({keyword, onSuggestionPress}) ReactNode | false    |               |                                   |
+| trigger           | string                                            | false    | '@'           |                                   |
+| inputRef          | TextInput                                         | false    |               |                                   |
+| containerStyle    | StyleProp\<ViewStyle>                             | false    |               |                                   |
+| ...textInputProps | TextInputProps                                    | false    |               |  Other text input props           |
 
 ### Known issues
+
 * Mention name regex accepts white spaces (eg `{name: ' ', value: 1}`)
 * ~~Keyboard auto-correction not working if suggested word has the same length~~ FIXED
 * ~~Text becomes transparent when setting custom font size in TextInput~~ FIXED
