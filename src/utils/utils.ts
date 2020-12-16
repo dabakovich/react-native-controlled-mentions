@@ -3,7 +3,7 @@ import { Change, diffChars } from 'diff';
 import matchAll from 'string.prototype.matchall';
 import { MentionData, Part, Position, RegexMatchResult, Suggestion } from '../types';
 
-const mentionRegEx = /(?<original>@\[(?<name>.+)]\((?<id>([0-9]*))\))/gi;
+const mentionRegEx = /(?<original>@\[(?<name>([^@[]*))]\((?<id>([0-9]*))\))/gi;
 
 type CharactersDiffChange = Omit<Change, 'count'> & { count: number };
 
