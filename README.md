@@ -1,8 +1,5 @@
-React Native Controlled Mentions
+react-native-controlled-mentions ![](https://img.shields.io/npm/v/react-native-controlled-mentions)
 -
-
-### About
-
 Pretty simple and fully controlled mentions input. It can:
 
 * Gracefully render formatted mentions directly in RN `TextInput` component
@@ -10,7 +7,14 @@ Pretty simple and fully controlled mentions input. It can:
 * Completely typed (written on TypeScript)
 * No need native libraries
 
-### Getting started
+Demo
+-
+Try it on Expo Snack: https://snack.expo.io/@dabakovich/mentionsapp
+
+![](demo.gif)
+
+Getting started
+-
 
 Install the library using either Yarn:
 
@@ -20,9 +24,8 @@ or npm:
 
 ``npm install --save react-native-controlled-mentions``
 
-### Example
-
-Try it on Expo Snack: https://snack.expo.io/@dabakovich/mentionsapp
+Example
+-
 
 ```tsx
 import * as React from 'react';
@@ -94,7 +97,8 @@ const App = () => {
 export default App;
 ```
 
-### Configuration
+Configuration
+-
 
 The `Mentions` component supports next props:
 
@@ -109,7 +113,8 @@ The `Mentions` component supports next props:
 | containerStyle            | StyleProp\<ViewStyle>                             | false    |               |                                                                                    |
 | ...textInputProps         | TextInputProps                                    | false    |               | Other text input props                                                             |
 
-### Parsing `Mention`'s value
+Parsing `Mention`'s value
+-
 
 You can import RegEx that is using in the component and then extract all your mentions
 from `Mention`'s value using your own logic.
@@ -130,12 +135,14 @@ console.log(replaceMentionValues(value, ({id}) => `@${id}`)); // Hello @5! How a
 console.log(replaceMentionValues(value, ({name}) => `@${name}`)); // Hello @David Tabaka! How are you?
 ```
 
-### To Do
+To Do
+-
 
 * Add more customizations
 * Add ability to handle few mention types ("#", "@" etc)
 
-### Known issues
+Known issues
+-
 
 * Mention name regex accepts white spaces (eg `{name: ' ', value: 1}`)
 * ~~Keyboard auto-correction not working if suggested word has the same length~~ FIXED
