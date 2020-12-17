@@ -30,8 +30,8 @@ Example
 ```tsx
 import * as React from 'react';
 import { FC, useState } from 'react';
-import { Mentions, Suggestion } from 'react-native-controlled-mentions';
 import { Pressable, SafeAreaView, Text, View } from 'react-native';
+import { Mentions, MentionSuggestionsProps, Suggestion } from 'react-native-controlled-mentions';
 
 const suggestions = [
   {id: '1', name: 'David Tabaka'},
@@ -41,34 +41,29 @@ const suggestions = [
   {id: '5', name: 'Grey'},
 ];
 
-type MentionSuggestionsProps = {
-  keyword?: string;
-  suggestions: Suggestion[];
-  onSuggestionPress: (suggestion: Suggestion) => void;
-};
+const MentionSuggestions: FC<MentionSuggestionsProps> = ({keyword, onSuggestionPress}) => {
+  if (keyword == null) {
+    return null;
+  }
 
-const MentionSuggestions: FC<MentionSuggestionsProps> = (
-  {
-    keyword,
-    suggestions,
-    onSuggestionPress,
-  },
-) => keyword != null ? (
-  <View>
-    {suggestions
-      .filter(item => item.name.toLowerCase().includes(keyword.toLowerCase()))
-      .map(suggestion => (
-        <Pressable
-          key={suggestion.id}
-          style={{padding: 12}}
-          onPress={() => onSuggestionPress(suggestion)}
-        >
-          <Text>{suggestion.name}</Text>
-        </Pressable>
-      ))
-    }
-  </View>
-) : null;
+  return (
+    <View>
+      {users
+        .filter(one => one.name.toLocaleLowerCase().includes(keyword.toLocaleLowerCase()))
+        .map(one => (
+          <Pressable
+            key={one.id}
+            onPress={() => onSuggestionPress(one)}
+
+            style={{padding: 12}}
+          >
+            <Text>{one.name}</Text>
+          </Pressable>
+        ))
+      }
+    </View>
+  );
+}
 
 const App = () => {
   const [value, setValue] = useState('Hello @[Mary](2)! How are you?');
@@ -79,13 +74,7 @@ const App = () => {
         value={value}
         onChange={setValue}
 
-        renderSuggestions={({keyword, onSuggestionPress}) => (
-          <MentionSuggestions
-            keyword={keyword}
-            suggestions={suggestions}
-            onSuggestionPress={onSuggestionPress}
-          />
-        )}
+        renderSuggestions={MentionSuggestions}
 
         placeholder="Type here..."
         style={{padding: 12}}
@@ -149,4 +138,5 @@ Known issues
 * ~~Text becomes transparent when setting custom font size in TextInput~~ FIXED
 
 [npm-image]: https://img.shields.io/npm/v/react-native-controlled-mentions
+
 [npm-url]: https://npmjs.org/package/react-native-controlled-mentions
