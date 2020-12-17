@@ -1,4 +1,4 @@
-react-native-controlled-mentions ! [![npm version][npm-image]][npm-url]
+react-native-controlled-mentions [![npm version][npm-image]][npm-url]
 -
 Pretty simple and fully controlled mentions input. It can:
 
