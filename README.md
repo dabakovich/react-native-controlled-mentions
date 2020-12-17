@@ -1,4 +1,4 @@
-react-native-controlled-mentions ![](https://img.shields.io/npm/v/react-native-controlled-mentions)
+react-native-controlled-mentions ! [![npm version][npm-image]][npm-url]
 -
 Pretty simple and fully controlled mentions input. It can:
 
@@ -147,3 +147,6 @@ Known issues
 * Mention name regex accepts white spaces (eg `{name: ' ', value: 1}`)
 * ~~Keyboard auto-correction not working if suggested word has the same length~~ FIXED
 * ~~Text becomes transparent when setting custom font size in TextInput~~ FIXED
+
+[npm-image]: https://img.shields.io/npm/v/react-native-controlled-mentions
+[npm-url]: https://npmjs.org/package/react-native-controlled-mentions
