@@ -34,6 +34,7 @@
     "react-native": ">=0.57"
   },
   "dependencies": {
-    "diff": "5.0.0"
+    "diff": "5.0.0",
+    "string.prototype.matchall": "4.0.3"
   }
 }
