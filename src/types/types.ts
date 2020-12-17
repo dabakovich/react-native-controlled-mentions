@@ -46,6 +46,9 @@ type MentionsProps = Omit<TextInputProps, 'onChange'> & {
   // Character that will trigger mentions (usually '@')
   trigger?: string;
 
+  // Should we add a space after selected mentions if the mention is at the end of row
+  isInsertSpaceAfterMention?: boolean;
+
   inputRef?: MutableRefObject<TextInput | null>;
 
   containerStyle?: StyleProp<ViewStyle>;

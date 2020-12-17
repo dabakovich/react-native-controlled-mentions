@@ -98,15 +98,16 @@ export default App;
 
 The `Mentions` component supports next props:
 
-| Prop name         | Type                                              | Required | Default value | Description                       |
-|-------------------|---------------------------------------------------|----------|---------------|-----------------------------------|
-| value             | string                                            | true     |               |                                   |
-| onChange          | function (value)                                  | true     |               |                                   |
-| renderSuggestions | function ({keyword, onSuggestionPress}) ReactNode | false    |               |                                   |
-| trigger           | string                                            | false    | '@'           |                                   |
-| inputRef          | TextInput                                         | false    |               |                                   |
-| containerStyle    | StyleProp\<ViewStyle>                             | false    |               |                                   |
-| ...textInputProps | TextInputProps                                    | false    |               |  Other text input props           |
+| Property name             | Type                                              | Required | Default value | Description                                                                        |
+|---------------------------|---------------------------------------------------|----------|---------------|------------------------------------------------------------------------------------|
+| value                     | string                                            | true     |               |                                                                                    |
+| onChange                  | function (value)                                  | true     |               |                                                                                    |
+| renderSuggestions         | function ({keyword, onSuggestionPress}) ReactNode | false    |               |                                                                                    |
+| trigger                   | string                                            | false    | '@'           | Character that will trigger mentions                                               |
+| isInsertSpaceAfterMention | boolean                                           | false    | false         | Should we add a space after selected mentions if the mention is at the end of row  |
+| inputRef                  | TextInput                                         | false    |               |                                                                                    |
+| containerStyle            | StyleProp\<ViewStyle>                             | false    |               |                                                                                    |
+| ...textInputProps         | TextInputProps                                    | false    |               | Other text input props                                                             |
 
 ### Parsing `Mention`'s value
 
@@ -130,6 +131,7 @@ console.log(replaceMentionValues(value, ({name}) => `@${name}`)); // Hello @Davi
 ```
 
 ### To Do
+
 * Add more customizations
 * Add ability to handle few mention types ("#", "@" etc)
 

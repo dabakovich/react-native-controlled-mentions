@@ -26,6 +26,8 @@ const Mentions: FC<MentionsProps> = (
 
     trigger = '@',
 
+    isInsertSpaceAfterMention = false,
+
     containerStyle,
 
     inputRef: propInputRef,
@@ -119,7 +121,7 @@ const Mentions: FC<MentionsProps> = (
               partWithAddition,
               getPart(value, start),
               ...newParts.slice(partWithAdditionIndex + 1),
-            ]
+            ];
 
             return;
           }
@@ -210,24 +212,26 @@ const Mentions: FC<MentionsProps> = (
       return;
     }
 
-    const newMentionPart: Position = {
+    const newMentionPartPosition: Position = {
       start: triggerPartIndex,
       end: selection.end - currentPart.position.start,
     };
 
-    const isInsertSpaceToNextPart = !parts[currentPartIndex]?.text.startsWith(' ');
+    const isInsertSpaceToNextPart = isInsertSpaceAfterMention
+      // Cursor it at the very of parts or text row
+      && (plainText.length === selection.end || parts[currentPartIndex]?.text.startsWith('\n', newMentionPartPosition.end));
 
     const newParts = [
       ...parts.slice(0, currentPartIndex),
 
       // Create part with string before mention
-      getPart(currentPart.text.substring(0, newMentionPart.start)),
+      getPart(currentPart.text.substring(0, newMentionPartPosition.start)),
       getMentionPart(trigger, {
         ...suggestion,
         original: getMentionValue(suggestion),
       }),
       // Create part with rest of string after mention and add a space if needed
-      getPart(`${isInsertSpaceToNextPart ? ' ' : ''}${currentPart.text.substring(newMentionPart.end)}`),
+      getPart(`${isInsertSpaceToNextPart ? ' ' : ''}${currentPart.text.substring(newMentionPartPosition.end)}`),
 
       ...parts.slice(currentPartIndex + 1),
     ];
