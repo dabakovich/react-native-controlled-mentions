@@ -32,6 +32,8 @@ const Mentions: FC<MentionsProps> = (
 
     inputRef: propInputRef,
 
+    onSelectionChange,
+
     ...textInputProps
   },
 ) => {
@@ -41,8 +43,10 @@ const Mentions: FC<MentionsProps> = (
 
   const {plainText, parts} = useMemo(() => getParts(trigger, value), [value]);
 
-  const onSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+  const handleSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
     setSelection(event.nativeEvent.selection);
+
+    onSelectionChange && onSelectionChange(event);
   };
 
   /**
@@ -272,7 +276,7 @@ const Mentions: FC<MentionsProps> = (
         multiline
 
         onChangeText={onChangeInput}
-        onSelectionChange={onSelectionChange}
+        onSelectionChange={handleSelectionChange}
       >
         <Text>
           {parts.map(({text, data}, index) => data ? (
