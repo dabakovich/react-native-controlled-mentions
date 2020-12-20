@@ -4,7 +4,7 @@ import { StyleProp, TextStyle } from 'react-native';
 import matchAll from 'string.prototype.matchall';
 import { MentionData, Part, Position, RegexMatchResult, Suggestion } from '../types';
 
-const mentionRegEx = /(?<original>@\[(?<name>([^@[]*))]\((?<id>([0-9]*))\))/gi;
+const mentionRegEx = /(?<original>@\[(?<name>([^@[]*))]\((?<id>([\d\w-]*))\))/gi;
 
 const defaultMentionTextStyle: StyleProp<TextStyle> = {fontWeight: 'bold', color: '#4f69f3'};
 
