@@ -99,6 +99,7 @@ The `Mentions` component supports next props:
 | trigger                   | string                                            | false    | '@'           | Character that will trigger mentions                                               |
 | isInsertSpaceAfterMention | boolean                                           | false    | false         | Should we add a space after selected mentions if the mention is at the end of row  |
 | inputRef                  | TextInput                                         | false    |               |                                                                                    |
+| mentionTextStyle          | StyleProp\<TextStyle>                             | false    |               | Text style for mentions in TextInput                                               |
 | containerStyle            | StyleProp\<ViewStyle>                             | false    |               |                                                                                    |
 | ...textInputProps         | TextInputProps                                    | false    |               | Other text input props                                                             |
 
