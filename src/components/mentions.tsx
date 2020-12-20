@@ -171,6 +171,7 @@ const Mentions: FC<MentionsProps> = (
 
     const triggerIndex = plainText.lastIndexOf(trigger, selection.end);
     const spaceIndex = plainText.lastIndexOf(' ', selection.end - 1);
+    const newLineIndex = plainText.lastIndexOf('\n', selection.end - 1);
 
     switch (true) {
       case triggerIndex == -1:
@@ -182,13 +183,18 @@ const Mentions: FC<MentionsProps> = (
       case triggerIndex < spaceIndex:
         return undefined;
 
-      case spaceIndex == -1 || spaceIndex + trigger.length === triggerIndex: {
+      // When we have a mention at the very beginning of text
+      case spaceIndex == -1 && newLineIndex == -1:
 
+      // When we have a mention on the new line
+      case newLineIndex + trigger.length === triggerIndex:
+
+      // When we have a mention just after space
+      case spaceIndex + trigger.length === triggerIndex:
         return plainText.substring(
           triggerIndex + trigger.length,
           selection.end,
         );
-      }
     }
   }, [parts, plainText, selection, trigger]);
 
@@ -225,7 +231,7 @@ const Mentions: FC<MentionsProps> = (
     };
 
     const isInsertSpaceToNextPart = isInsertSpaceAfterMention
-      // Cursor it at the very of parts or text row
+      // Cursor is at the very end of parts or text row
       && (plainText.length === selection.end || parts[currentPartIndex]?.text.startsWith('\n', newMentionPartPosition.end));
 
     const newParts = [
