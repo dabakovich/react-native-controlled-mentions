@@ -1,9 +1,12 @@
 import { Change, diffChars } from 'diff';
+import { StyleProp, TextStyle } from 'react-native';
 // @ts-ignore the lib do not have TS declarations yet
 import matchAll from 'string.prototype.matchall';
 import { MentionData, Part, Position, RegexMatchResult, Suggestion } from '../types';
 
 const mentionRegEx = /(?<original>@\[(?<name>([^@[]*))]\((?<id>([0-9]*))\))/gi;
+
+const defaultMentionTextStyle: StyleProp<TextStyle> = {fontWeight: 'bold', color: '#4f69f3'};
 
 type CharactersDiffChange = Omit<Change, 'count'> & { count: number };
 
@@ -167,6 +170,7 @@ const replaceMentionValues = (
 
 export {
   mentionRegEx,
+  defaultMentionTextStyle,
   getChangedPositions,
   getPart,
   getMentionPart,

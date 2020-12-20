@@ -1,4 +1,4 @@
-import { StyleProp, TextInput, TextInputProps, ViewStyle } from 'react-native';
+import { StyleProp, TextInput, TextInputProps, TextStyle, ViewStyle } from 'react-native';
 import { MutableRefObject, ReactNode } from 'react';
 
 type Suggestion = {
@@ -50,6 +50,8 @@ type MentionsProps = Omit<TextInputProps, 'onChange'> & {
   isInsertSpaceAfterMention?: boolean;
 
   inputRef?: MutableRefObject<TextInput | null>;
+
+  mentionTextStyle?: StyleProp<TextStyle>;
 
   containerStyle?: StyleProp<ViewStyle>;
 };

@@ -9,6 +9,7 @@ import {
 
 import { MentionsProps, Position, Suggestion } from '../types';
 import {
+  defaultMentionTextStyle,
   getChangedPositions,
   getMentionPart,
   getMentionValue,
@@ -28,9 +29,11 @@ const Mentions: FC<MentionsProps> = (
 
     isInsertSpaceAfterMention = false,
 
-    containerStyle,
-
     inputRef: propInputRef,
+
+    mentionTextStyle = defaultMentionTextStyle,
+
+    containerStyle,
 
     onSelectionChange,
 
@@ -280,7 +283,7 @@ const Mentions: FC<MentionsProps> = (
       >
         <Text>
           {parts.map(({text, data}, index) => data ? (
-            <Text key={`${index}-m`} style={{fontWeight: 'bold', color: '#4f69f3'}}>{text}</Text>
+            <Text key={`${index}-m`} style={mentionTextStyle}>{text}</Text>
           ) : (
             <Text key={index}>{text}</Text>
           ))}
