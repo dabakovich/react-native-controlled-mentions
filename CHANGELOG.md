@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.1.8](https://github.com/dabakovich/react-native-controlled-mentions/tree/v0.1.8) (2020-12-22)
+
+[Full Changelog](https://github.com/dabakovich/react-native-controlled-mentions/compare/v0.1.7...v0.1.8)
+
+**Fixed bugs:**
+
+- inputRef undefined for Mentions [\#11](https://github.com/dabakovich/react-native-controlled-mentions/issues/11)
+
 ## [v0.1.7](https://github.com/dabakovich/react-native-controlled-mentions/tree/v0.1.7) (2020-12-20)
 
 [Full Changelog](https://github.com/dabakovich/react-native-controlled-mentions/compare/v0.1.6...v0.1.7)
