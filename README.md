@@ -98,7 +98,7 @@ The `Mentions` component supports next props:
 | renderSuggestions         | function ({keyword, onSuggestionPress}) ReactNode | false    |               |                                                                                    |
 | trigger                   | string                                            | false    | '@'           | Character that will trigger mentions                                               |
 | isInsertSpaceAfterMention | boolean                                           | false    | false         | Should we add a space after selected mentions if the mention is at the end of row  |
-| inputRef                  | TextInput                                         | false    |               |                                                                                    |
+| inputRef                  | Ref<TextInput>                                    | false    |               |                                                                                    |
 | mentionTextStyle          | StyleProp\<TextStyle>                             | false    |               | Text style for mentions in TextInput                                               |
 | containerStyle            | StyleProp\<ViewStyle>                             | false    |               |                                                                                    |
 | ...textInputProps         | TextInputProps                                    | false    |               | Other text input props                                                             |
