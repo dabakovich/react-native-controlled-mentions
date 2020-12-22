@@ -1,5 +1,5 @@
+import { ReactNode, Ref } from 'react';
 import { StyleProp, TextInput, TextInputProps, TextStyle, ViewStyle } from 'react-native';
-import { MutableRefObject, ReactNode } from 'react';
 
 type Suggestion = {
   id: string;
@@ -49,7 +49,7 @@ type MentionsProps = Omit<TextInputProps, 'onChange'> & {
   // Should we add a space after selected mentions if the mention is at the end of row
   isInsertSpaceAfterMention?: boolean;
 
-  inputRef?: MutableRefObject<TextInput | null>;
+  inputRef?: Ref<TextInput>;
 
   mentionTextStyle?: StyleProp<TextStyle>;
 

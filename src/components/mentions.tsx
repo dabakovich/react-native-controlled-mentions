@@ -1,4 +1,4 @@
-import React, { FC, useMemo, useRef, useState } from 'react';
+import React, { FC, MutableRefObject, useMemo, useRef, useState } from 'react';
 import {
   NativeSyntheticEvent,
   Text,
@@ -267,7 +267,14 @@ const Mentions: FC<MentionsProps> = (
 
   const handleTextInputRef = (ref: TextInput) => {
     textInput.current = ref as TextInput;
-    if (propInputRef) propInputRef.current = ref as TextInput;
+
+    if (propInputRef) {
+      if (typeof propInputRef === 'function') {
+        propInputRef(ref);
+      } else {
+        (propInputRef as MutableRefObject<TextInput>).current = ref as TextInput;
+      }
+    }
   };
 
   return (
