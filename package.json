@@ -12,7 +12,8 @@
   "scripts": {
     "prepare": "tsc",
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "postversion": "git push && git push --tags"
   },
   "files": [
     "dist"
