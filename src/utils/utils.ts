@@ -10,60 +10,182 @@ const defaultMentionTextStyle: StyleProp<TextStyle> = {fontWeight: 'bold', color
 
 type CharactersDiffChange = Omit<Change, 'count'> & { count: number };
 
+const getPartIndexByCursor = (parts: Part[], cursor: number, isIncludeEnd?: boolean) => {
+  return parts.findIndex(one => cursor >= one.position.start && isIncludeEnd ? cursor <= one.position.end : cursor < one.position.end);
+};
+
 /**
- * Function that finding all changes between two strings;
+ * The method for getting parts between two cursor positions.
  *
- * @param originalText
- * @param changedText
- * @returns Deleted and added positions relates to original string
+ * | part1 |   part2   |   part3   |
+ *  a b c|d e f g h i j h k|l m n o
+ *  We will get 3 parts here:
+ *  1. Part included 'd'
+ *  2. Part included 'efghij'
+ *  3. Part included 'hk'
+ *  Cursor will move to position after 'k'
+ *
+ * @param parts full part list
+ * @param cursor current cursor position
+ * @param count count of characters that didn't change
  */
-const getChangedPositions = (originalText: string, changedText: string) => {
+const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] => {
+  const newCursor = cursor + count;
+
+  const currentPartIndex = getPartIndexByCursor(parts, cursor);
+  const currentPart = parts[currentPartIndex];
+
+  const newPartIndex = getPartIndexByCursor(parts, newCursor, true);
+  const newPart = parts[newPartIndex];
+
+  let partsInterval: Part[] = [];
+
+  // Push whole first affected part or sub-part of the first affected part
+  if (currentPart.position.start === cursor && currentPart.position.end <= newCursor) {
+    partsInterval.push(currentPart);
+  } else {
+    partsInterval.push(generatePart(currentPart.text.substr(cursor - currentPart.position.start, count)));
+  }
+
+  if (newPartIndex > currentPartIndex) {
+    // Concat fully included parts
+    partsInterval = partsInterval.concat(parts.slice(currentPartIndex + 1, newPartIndex));
+
+    // Push whole last affected part or sub-part of the last affected part
+    if (newPart.position.end === newCursor && newPart.position.start >= cursor) {
+      partsInterval.push(newPart);
+    } else {
+      partsInterval.push(generatePart(newPart.text.substr(0, newCursor - newPart.position.start)));
+    }
+  }
+
+  return partsInterval;
+};
+
+/**
+ * Generates new value when we changing text.
+ *
+ * @param parts full parts list
+ * @param originalText original plain text
+ * @param changedText changed plain text
+ */
+const generateValueFromPartsAndChangedText = (parts: Part[], originalText: string, changedText: string) => {
   const changes = diffChars(originalText, changedText) as CharactersDiffChange[];
 
-  const changePositions: {
-    deleted: Position[];
-    added: {
-      start: number;
-      value: string;
-    }[];
-  } = {
-    deleted: [],
-    added: [],
-  };
+  let newParts: Part[] = [];
 
-  let originalCursor = 0;
+  let cursor = 0;
 
-  changes.forEach(({count, removed, added, value}) => {
+  changes.forEach(change => {
     switch (true) {
-      case removed: {
-        changePositions.deleted.push({
-          start: originalCursor,
-          end: originalCursor + count,
-        });
-        originalCursor += count;
+      /**
+       * We should:
+       * - Move cursor forward on the changed text length
+       */
+      case change.removed: {
+        cursor += change.count;
 
-        return;
+        break;
       }
 
-      case added: {
-        changePositions.added.push({
-          start: originalCursor,
-          value,
-        });
+      /**
+       * We should:
+       * - Push new part to the parts with that new text
+       */
+      case change.added: {
+        newParts.push(generatePart(change.value));
 
-        return;
+        break;
       }
 
+      /**
+       * We should concat parts that didn't change.
+       * - In case when we have only one affected part we should push only that one sub-part
+       * - In case we have two affected parts we should push first
+       */
       default: {
-        originalCursor += count;
+        newParts = newParts.concat(getPartsInterval(parts, cursor, change.count));
+
+        cursor += change.count;
+
+        break;
       }
     }
   });
 
-  return changePositions;
+  return getValueFromParts(newParts);
 };
 
-const getPart = (text: string, positionOffset = 0): Part => ({
+/**
+ * Method for adding suggestion to the parts and generating value. We should:
+ * - Find part with plain text where we were tracking mention typing using selection state
+ * - Split the part to next parts:
+ * -* Before new mention
+ * -* With new mention
+ * -* After mention with space at the beginning
+ * - Generate new parts array and convert it to value
+ *
+ * @param parts full part list
+ * @param trigger trigger for mention
+ * @param plainText current plain text
+ * @param selection current selection
+ * @param suggestion suggestion that should be added
+ * @param isInsertSpaceAfterMention should we insert a space just after added suggestion
+ */
+const generateValueWithAddedSuggestion = (
+  parts: Part[],
+  trigger: string,
+  plainText: string,
+  selection: Position,
+  suggestion: Suggestion,
+  isInsertSpaceAfterMention?: boolean,
+): string | undefined => {
+  const currentPartIndex = parts.findIndex(one => selection.end >= one.position.start && selection.end <= one.position.end);
+  const currentPart = parts[currentPartIndex];
+
+  if (!currentPart) {
+    return;
+  }
+
+  const triggerPartIndex = currentPart.text.lastIndexOf(trigger, selection.end - currentPart.position.start);
+  const spacePartIndex = currentPart.text.lastIndexOf(' ', selection.end - currentPart.position.start - 1);
+
+  if (spacePartIndex > triggerPartIndex) {
+    return;
+  }
+
+  const newMentionPartPosition: Position = {
+    start: triggerPartIndex,
+    end: selection.end - currentPart.position.start,
+  };
+
+  const isInsertSpaceToNextPart = isInsertSpaceAfterMention
+    // Cursor is at the very end of parts or text row
+    && (plainText.length === selection.end || parts[currentPartIndex]?.text.startsWith('\n', newMentionPartPosition.end));
+
+  return getValueFromParts([
+    ...parts.slice(0, currentPartIndex),
+
+    // Create part with string before mention
+    generatePart(currentPart.text.substring(0, newMentionPartPosition.start)),
+    generateMentionPart(trigger, {
+      ...suggestion,
+      original: getMentionValue(suggestion),
+    }),
+    // Create part with rest of string after mention and add a space if needed
+    generatePart(`${isInsertSpaceToNextPart ? ' ' : ''}${currentPart.text.substring(newMentionPartPosition.end)}`),
+
+    ...parts.slice(currentPartIndex + 1),
+  ]);
+};
+
+/**
+ * Method for generating part for plain text
+ *
+ * @param text - plain text that will be added to the part
+ * @param positionOffset - position offset from the very beginning of text
+ */
+const generatePart = (text: string, positionOffset = 0): Part => ({
   text,
   position: {
     start: positionOffset,
@@ -71,7 +193,14 @@ const getPart = (text: string, positionOffset = 0): Part => ({
   },
 });
 
-const getMentionPart = (trigger: string, mention: MentionData, positionOffset = 0): Part => {
+/**
+ * Method for generating part for mention
+ *
+ * @param trigger trigger for mention
+ * @param mention mention data
+ * @param positionOffset position offset from the very beginning of text
+ */
+const generateMentionPart = (trigger: string, mention: MentionData, positionOffset = 0): Part => {
   const text = `${trigger}${mention.name}`;
 
   return {
@@ -84,6 +213,11 @@ const getMentionPart = (trigger: string, mention: MentionData, positionOffset = 
   };
 };
 
+/**
+ * Method for generation mention value that accepts mention regex
+ *
+ * @param suggestion
+ */
 const getMentionValue = (suggestion: Suggestion) => `@[${suggestion.name}](${suggestion.id})`;
 
 /**
@@ -92,7 +226,7 @@ const getMentionValue = (suggestion: Suggestion) => `@[${suggestion.name}](${sug
  * @param trigger
  * @param value
  */
-const getParts = (trigger: string, value: string) => {
+const getPartsFromValue = (trigger: string, value: string) => {
   const results: RegexMatchResult[] = Array.from(matchAll(value ?? '', mentionRegEx));
   const parts: Part[] = [];
 
@@ -100,7 +234,7 @@ const getParts = (trigger: string, value: string) => {
 
   // In case when we don't have any mentions we just return the only one part with plain text
   if (results.length == 0) {
-    parts.push(getPart(value, 0));
+    parts.push(generatePart(value, 0));
 
     plainText += value;
 
@@ -114,7 +248,7 @@ const getParts = (trigger: string, value: string) => {
   if (results[0].index != 0) {
     const text = value.substr(0, results[0].index);
 
-    parts.push(getPart(text, 0));
+    parts.push(generatePart(text, 0));
 
     plainText += text;
   }
@@ -122,7 +256,7 @@ const getParts = (trigger: string, value: string) => {
   for (let i = 0; i < results.length; i++) {
     const result = results[i];
 
-    const mentionPart = getMentionPart(trigger, result.groups, plainText.length);
+    const mentionPart = generateMentionPart(trigger, result.groups, plainText.length);
 
     parts.push(mentionPart);
 
@@ -136,7 +270,7 @@ const getParts = (trigger: string, value: string) => {
         isLastResult ? undefined : results[i + 1].index,
       );
 
-      parts.push(getPart(text, plainText.length));
+      parts.push(generatePart(text, plainText.length));
 
       plainText += text;
     }
@@ -153,7 +287,7 @@ const getParts = (trigger: string, value: string) => {
  *
  * @param parts
  */
-const getValue = (parts: Part[]) => parts
+const getValueFromParts = (parts: Part[]) => parts
   .map(item => (item.data ? item.data.original : item.text))
   .join('');
 
@@ -171,11 +305,12 @@ const replaceMentionValues = (
 export {
   mentionRegEx,
   defaultMentionTextStyle,
-  getChangedPositions,
-  getPart,
-  getMentionPart,
+  generateValueFromPartsAndChangedText,
+  generateValueWithAddedSuggestion,
+  generatePart,
+  generateMentionPart,
   getMentionValue,
-  getParts,
-  getValue,
+  getPartsFromValue,
+  getValueFromParts,
   replaceMentionValues,
 };
