@@ -7,15 +7,12 @@ import {
   View,
 } from 'react-native';
 
-import { MentionsProps, Position, Suggestion } from '../types';
+import { MentionsProps, Suggestion } from '../types';
 import {
   defaultMentionTextStyle,
-  getChangedPositions,
-  getMentionPart,
-  getMentionValue,
-  getPart,
-  getParts,
-  getValue,
+  generateValueFromPartsAndChangedText,
+  generateValueWithAddedSuggestion,
+  getPartsFromValue,
 } from '../utils';
 
 const Mentions: FC<MentionsProps> = (
@@ -44,7 +41,7 @@ const Mentions: FC<MentionsProps> = (
 
   const [selection, setSelection] = useState({start: 0, end: 0});
 
-  const {plainText, parts} = useMemo(() => getParts(trigger, value), [value]);
+  const {plainText, parts} = useMemo(() => getPartsFromValue(trigger, value), [value]);
 
   const handleSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
     setSelection(event.nativeEvent.selection);
@@ -54,97 +51,11 @@ const Mentions: FC<MentionsProps> = (
 
   /**
    * Callback that trigger on TextInput text change
-   * We should:
    *
-   * - Find all change positions
-   *
-   * - Remove all parts that was fully deleted
-   * - Update parts that was partly deleted
-   *
-   * - Update parts that has added stuff
-   *
-   * - Remove mention data if some affected part is mention
-   * @param text
+   * @param changedText
    */
-  const onChangeInput = (text: string) => {
-    const changePositions = getChangedPositions(plainText, text);
-
-    let newParts = parts;
-
-    // Process deleting changes
-    if (changePositions.deleted.length) {
-      changePositions.deleted.forEach(({start, end}) => {
-        newParts = newParts
-
-          // Filter fully removed parts
-          .filter(one => one.position.start < start || one.position.end > end)
-
-          // Update partly affected parts
-          .map((one) => {
-            if (
-              start >= one.position.start && start < one.position.end
-              || end > one.position.start && end <= one.position.end
-            ) {
-              const positionOffset = one.position.start;
-
-              const removedTextPartPosition: Position = {
-                start: Math.max(start, one.position.start) - positionOffset,
-                end: Math.min(end, one.position.end) - positionOffset,
-              };
-
-              one.text = [
-                one.text.substring(0, removedTextPartPosition.start),
-                one.text.substring(removedTextPartPosition.end),
-              ].join('');
-
-              // In case when user edited mention we remove mention
-              if (one.data) {
-                delete one.data;
-              }
-            }
-
-            return one;
-          });
-      });
-    }
-
-    // Process adding changes
-    if (changePositions.added.length) {
-      changePositions.added.forEach(({start, value}) => {
-        // Finding part where text was added
-        const partWithAdditionIndex = newParts.findIndex(one => start >= one.position.start && start <= one.position.end);
-        const partWithAddition = newParts[partWithAdditionIndex];
-
-        if (!partWithAddition) return;
-
-        const addedTextPartPositionBeforeChange = start - partWithAddition.position.start;
-
-        // In case when user edited mention we remove mention
-        if (partWithAddition.data != null) {
-          // In case when we added text at the end of mention
-          if (partWithAddition.position.end === start) {
-            newParts = [
-              ...newParts.slice(0, partWithAdditionIndex),
-              partWithAddition,
-              getPart(value, start),
-              ...newParts.slice(partWithAdditionIndex + 1),
-            ];
-
-            return;
-          }
-
-          delete partWithAddition.data;
-        }
-
-        partWithAddition.text = [
-          partWithAddition.text.substring(0, addedTextPartPositionBeforeChange),
-          value,
-          partWithAddition.text.substring(addedTextPartPositionBeforeChange),
-        ].join('');
-      });
-    }
-
-    onChange(getValue(newParts));
+  const onChangeInput = (changedText: string) => {
+    onChange(generateValueFromPartsAndChangedText(parts, plainText, changedText));
   };
 
   /**
@@ -200,56 +111,26 @@ const Mentions: FC<MentionsProps> = (
 
   /**
    * Callback on mention suggestion press. We should:
-   * - Find part with plain text where we were tracking mention typing using selection state
-   * - Split the part to next parts:
-   * -* Before new mention
-   * -* With new mention
-   * -* After mention with space at the beginning
-   * - Generate new parts array
-   * - Trigger onChange callback with new value generated from the new parts array (using toValue)
+   * - Get updated value
+   * - Trigger onChange callback with new value
    *
    * @param suggestion
    */
   const onMentionSuggestionPress = (suggestion: Suggestion) => {
-    const currentPartIndex = parts.findIndex(one => selection.end >= one.position.start && selection.end <= one.position.end);
-    const currentPart = parts[currentPartIndex];
+    const newValue = generateValueWithAddedSuggestion(
+      parts,
+      trigger,
+      plainText,
+      selection,
+      suggestion,
+      isInsertSpaceAfterMention,
+    );
 
-    if (!currentPart) {
+    if (!newValue) {
       return;
     }
 
-    const triggerPartIndex = currentPart.text.lastIndexOf(trigger, selection.end - currentPart.position.start);
-    const spacePartIndex = currentPart.text.lastIndexOf(' ', selection.end - currentPart.position.start - 1);
-
-    if (spacePartIndex > triggerPartIndex) {
-      return;
-    }
-
-    const newMentionPartPosition: Position = {
-      start: triggerPartIndex,
-      end: selection.end - currentPart.position.start,
-    };
-
-    const isInsertSpaceToNextPart = isInsertSpaceAfterMention
-      // Cursor is at the very end of parts or text row
-      && (plainText.length === selection.end || parts[currentPartIndex]?.text.startsWith('\n', newMentionPartPosition.end));
-
-    const newParts = [
-      ...parts.slice(0, currentPartIndex),
-
-      // Create part with string before mention
-      getPart(currentPart.text.substring(0, newMentionPartPosition.start)),
-      getMentionPart(trigger, {
-        ...suggestion,
-        original: getMentionValue(suggestion),
-      }),
-      // Create part with rest of string after mention and add a space if needed
-      getPart(`${isInsertSpaceToNextPart ? ' ' : ''}${currentPart.text.substring(newMentionPartPosition.end)}`),
-
-      ...parts.slice(currentPartIndex + 1),
-    ];
-
-    onChange(getValue(newParts));
+    onChange(newValue);
 
     /**
      * Move cursor to the end of just added mention starting from trigger string and including:
