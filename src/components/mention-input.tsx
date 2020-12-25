@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 
-import { MentionsProps, Suggestion } from '../types';
+import { MentionInputProps, MentionType, Suggestion } from '../types';
 import {
   defaultMentionTextStyle,
   generateValueFromPartsAndChangedText,
@@ -15,20 +15,14 @@ import {
   getPartsFromValue,
 } from '../utils';
 
-const Mentions: FC<MentionsProps> = (
+const MentionInput: FC<MentionInputProps> = (
   {
     value,
     onChange,
 
-    renderSuggestions,
-
-    trigger = '@',
-
-    isInsertSpaceAfterMention = false,
+    mentionTypes = [],
 
     inputRef: propInputRef,
-
-    mentionTextStyle = defaultMentionTextStyle,
 
     containerStyle,
 
@@ -41,7 +35,7 @@ const Mentions: FC<MentionsProps> = (
 
   const [selection, setSelection] = useState({start: 0, end: 0});
 
-  const {plainText, parts} = useMemo(() => getPartsFromValue(trigger, value), [value]);
+  const {plainText, parts} = useMemo(() => getPartsFromValue(mentionTypes, value), [value]);
 
   const handleSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
     setSelection(event.nativeEvent.selection);
@@ -71,59 +65,62 @@ const Mentions: FC<MentionsProps> = (
    * 'abc @|name dfg' - keyword is against ''
    * 'abc @name |dfg' - keyword is against undefined'
    */
-  const keyword = useMemo((): string | undefined => {
-    if (selection.end != selection.start) {
-      return undefined;
-    }
+  const keywordByTrigger = useMemo((): { [trigger: string]: string | undefined } => {
+    const newKeywordByTrigger: { [trigger: string]: string | undefined } = {};
 
-    if (parts.some(one => one.data != null && selection.end >= one.position.start && selection.end <= one.position.end)) {
-      return undefined;
-    }
-
-    const triggerIndex = plainText.lastIndexOf(trigger, selection.end);
-    const spaceIndex = plainText.lastIndexOf(' ', selection.end - 1);
-    const newLineIndex = plainText.lastIndexOf('\n', selection.end - 1);
-
-    switch (true) {
-      case triggerIndex == -1:
+    mentionTypes.forEach((mentionType) => {
+      if (selection.end != selection.start) {
         return undefined;
+      }
 
-      case triggerIndex === selection.end:
+      if (parts.some(one => one.data != null && selection.end >= one.position.start && selection.end <= one.position.end)) {
         return undefined;
+      }
 
-      case triggerIndex < spaceIndex:
-        return undefined;
+      const triggerIndex = plainText.lastIndexOf(mentionType.trigger, selection.end);
+      const spaceIndex = plainText.lastIndexOf(' ', selection.end - 1);
+      const newLineIndex = plainText.lastIndexOf('\n', selection.end - 1);
 
-      // When we have a mention at the very beginning of text
-      case spaceIndex == -1 && newLineIndex == -1:
+      switch (true) {
+        case triggerIndex == -1:
+          return undefined;
 
-      // When we have a mention on the new line
-      case newLineIndex + trigger.length === triggerIndex:
+        case triggerIndex === selection.end:
+          return undefined;
 
-      // When we have a mention just after space
-      case spaceIndex + trigger.length === triggerIndex:
-        return plainText.substring(
-          triggerIndex + trigger.length,
-          selection.end,
-        );
-    }
-  }, [parts, plainText, selection, trigger]);
+        case triggerIndex < spaceIndex:
+          return undefined;
+
+        // When we have a mention at the very beginning of text
+        case spaceIndex == -1 && newLineIndex == -1:
+
+        // When we have a mention on the new line
+        case newLineIndex + 1 === triggerIndex:
+
+        // When we have a mention just after space
+        case spaceIndex + 1 === triggerIndex:
+          newKeywordByTrigger[mentionType.trigger] = plainText.substring(
+            triggerIndex + 1,
+            selection.end,
+          );
+      }
+    });
+
+    return newKeywordByTrigger;
+  }, [parts, plainText, selection, mentionTypes]);
 
   /**
    * Callback on mention suggestion press. We should:
    * - Get updated value
    * - Trigger onChange callback with new value
-   *
-   * @param suggestion
    */
-  const onMentionSuggestionPress = (suggestion: Suggestion) => {
+  const onSuggestionPress = (mentionType: MentionType) => (suggestion: Suggestion) => {
     const newValue = generateValueWithAddedSuggestion(
       parts,
-      trigger,
+      mentionType,
       plainText,
       selection,
       suggestion,
-      isInsertSpaceAfterMention,
     );
 
     if (!newValue) {
@@ -160,10 +157,17 @@ const Mentions: FC<MentionsProps> = (
 
   return (
     <View style={containerStyle}>
-      {renderSuggestions && renderSuggestions({
-        keyword,
-        onSuggestionPress: onMentionSuggestionPress,
-      })}
+      {mentionTypes
+        .filter(one => one.renderSuggestions != null)
+        .map((mentionType) => (
+          <React.Fragment key={mentionType.trigger}>
+            {mentionType.renderSuggestions && mentionType.renderSuggestions({
+              keyword: keywordByTrigger[mentionType.trigger],
+              onSuggestionPress: onSuggestionPress(mentionType),
+            })}
+          </React.Fragment>
+        ))
+      }
 
       <TextInput
         {...textInputProps}
@@ -177,7 +181,12 @@ const Mentions: FC<MentionsProps> = (
       >
         <Text>
           {parts.map(({text, data}, index) => data ? (
-            <Text key={`${index}-m`} style={mentionTextStyle}>{text}</Text>
+            <Text
+              key={`${index}-${data.trigger}`}
+              style={mentionTypes?.find(one => one.trigger === data.trigger)?.textStyle ?? defaultMentionTextStyle}
+            >
+              {text}
+            </Text>
           ) : (
             <Text key={index}>{text}</Text>
           ))}
@@ -187,4 +196,4 @@ const Mentions: FC<MentionsProps> = (
   );
 };
 
-export { Mentions };
+export { MentionInput };

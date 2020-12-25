@@ -2,11 +2,13 @@ import { Change, diffChars } from 'diff';
 import { StyleProp, TextStyle } from 'react-native';
 // @ts-ignore the lib do not have TS declarations yet
 import matchAll from 'string.prototype.matchall';
-import { MentionData, Part, Position, RegexMatchResult, Suggestion } from '../types';
+import { MentionData, MentionType, Part, Position, RegexMatchResult, Suggestion } from '../types';
 
-const mentionRegEx = /(?<original>@\[(?<name>([^@[]*))]\((?<id>([\d\w-]*))\))/gi;
+const mentionRegEx = /(?<original>(?<trigger>.)\[(?<name>([^[]*))]\((?<id>([\d\w-]*))\))/gi;
 
-const defaultMentionTextStyle: StyleProp<TextStyle> = {fontWeight: 'bold', color: '#4f69f3'};
+const defaultMentionTextStyle: StyleProp<TextStyle> = {fontWeight: 'bold', color: 'blue'};
+
+const defaultPlainStringGenerator = ({trigger}: MentionType, {name}: MentionData) => `${trigger}${name}`;
 
 type CharactersDiffChange = Omit<Change, 'count'> & { count: number };
 
@@ -126,19 +128,17 @@ const generateValueFromPartsAndChangedText = (parts: Part[], originalText: strin
  * - Generate new parts array and convert it to value
  *
  * @param parts full part list
- * @param trigger trigger for mention
+ * @param mentionType actually the mention type
  * @param plainText current plain text
  * @param selection current selection
  * @param suggestion suggestion that should be added
- * @param isInsertSpaceAfterMention should we insert a space just after added suggestion
  */
 const generateValueWithAddedSuggestion = (
   parts: Part[],
-  trigger: string,
+  mentionType: MentionType,
   plainText: string,
   selection: Position,
   suggestion: Suggestion,
-  isInsertSpaceAfterMention?: boolean,
 ): string | undefined => {
   const currentPartIndex = parts.findIndex(one => selection.end >= one.position.start && selection.end <= one.position.end);
   const currentPart = parts[currentPartIndex];
@@ -147,7 +147,7 @@ const generateValueWithAddedSuggestion = (
     return;
   }
 
-  const triggerPartIndex = currentPart.text.lastIndexOf(trigger, selection.end - currentPart.position.start);
+  const triggerPartIndex = currentPart.text.lastIndexOf(mentionType.trigger, selection.end - currentPart.position.start);
   const spacePartIndex = currentPart.text.lastIndexOf(' ', selection.end - currentPart.position.start - 1);
 
   if (spacePartIndex > triggerPartIndex) {
@@ -159,7 +159,7 @@ const generateValueWithAddedSuggestion = (
     end: selection.end - currentPart.position.start,
   };
 
-  const isInsertSpaceToNextPart = isInsertSpaceAfterMention
+  const isInsertSpaceToNextPart = mentionType.isInsertSpaceAfterMention
     // Cursor is at the very end of parts or text row
     && (plainText.length === selection.end || parts[currentPartIndex]?.text.startsWith('\n', newMentionPartPosition.end));
 
@@ -168,10 +168,12 @@ const generateValueWithAddedSuggestion = (
 
     // Create part with string before mention
     generatePart(currentPart.text.substring(0, newMentionPartPosition.start)),
-    generateMentionPart(trigger, {
+    generateMentionPart(mentionType, {
+      original: getMentionValue(mentionType.trigger, suggestion),
+      trigger: mentionType.trigger,
       ...suggestion,
-      original: getMentionValue(suggestion),
     }),
+
     // Create part with rest of string after mention and add a space if needed
     generatePart(`${isInsertSpaceToNextPart ? ' ' : ''}${currentPart.text.substring(newMentionPartPosition.end)}`),
 
@@ -196,12 +198,14 @@ const generatePart = (text: string, positionOffset = 0): Part => ({
 /**
  * Method for generating part for mention
  *
- * @param trigger trigger for mention
+ * @param mentionType
  * @param mention mention data
  * @param positionOffset position offset from the very beginning of text
  */
-const generateMentionPart = (trigger: string, mention: MentionData, positionOffset = 0): Part => {
-  const text = `${trigger}${mention.name}`;
+const generateMentionPart = (mentionType: MentionType, mention: MentionData, positionOffset = 0): Part => {
+  const text = mentionType.getPlainString
+    ? mentionType.getPlainString(mention)
+    : defaultPlainStringGenerator(mentionType, mention);
 
   return {
     text,
@@ -216,24 +220,26 @@ const generateMentionPart = (trigger: string, mention: MentionData, positionOffs
 /**
  * Method for generation mention value that accepts mention regex
  *
+ * @param trigger
  * @param suggestion
  */
-const getMentionValue = (suggestion: Suggestion) => `@[${suggestion.name}](${suggestion.id})`;
+const getMentionValue = (trigger: string, suggestion: Suggestion) => `${trigger}[${suggestion.name}](${suggestion.id})`;
 
 /**
  * Function for generating parts array from value
  *
- * @param trigger
+ * @param mentionTypes
  * @param value
  */
-const getPartsFromValue = (trigger: string, value: string) => {
+const getPartsFromValue = (mentionTypes: MentionType[], value: string) => {
   const results: RegexMatchResult[] = Array.from(matchAll(value ?? '', mentionRegEx));
   const parts: Part[] = [];
 
   let plainText = '';
 
-  // In case when we don't have any mentions we just return the only one part with plain text
-  if (results.length == 0) {
+  // In case when we don't have any mentions or there are no any mention type
+  // we just return the only one part with plain text
+  if (results.length === 0 || mentionTypes.length === 0) {
     parts.push(generatePart(value, 0));
 
     plainText += value;
@@ -253,18 +259,31 @@ const getPartsFromValue = (trigger: string, value: string) => {
     plainText += text;
   }
 
+  // Iterating over all found mention matches
   for (let i = 0; i < results.length; i++) {
     const result = results[i];
 
-    const mentionPart = generateMentionPart(trigger, result.groups, plainText.length);
+    const mentionType = mentionTypes.find(({trigger}) => result.groups.original.startsWith(trigger));
+
+    // We didn't found mention trigger
+    if (!mentionType) {
+      parts.push(generatePart(result.groups.original, plainText.length));
+
+      continue;
+    }
+
+    const mentionPart = generateMentionPart(mentionType, result.groups, plainText.length);
 
     parts.push(mentionPart);
 
     plainText += mentionPart.text;
 
+    // Check if the result is not at the end of whole value
     if ((result.index + result.groups.original.length) !== value.length) {
-      const isLastResult = i == results.length - 1;
+      // Check if it is the last result
+      const isLastResult = i === results.length - 1;
 
+      // So we should to add the last substring of value after matched mention
       const text = value.slice(
         result.index + result.groups.original.length,
         isLastResult ? undefined : results[i + 1].index,
@@ -300,7 +319,12 @@ const getValueFromParts = (parts: Part[]) => parts
 const replaceMentionValues = (
   value: string,
   replacer: (mention: MentionData) => string,
-) => value.replace(mentionRegEx, (mention, original, name, id) => replacer({original, name, id}));
+) => value.replace(mentionRegEx, (mention, original, trigger, name, id) => replacer({
+  original,
+  trigger,
+  name,
+  id,
+}));
 
 export {
   mentionRegEx,

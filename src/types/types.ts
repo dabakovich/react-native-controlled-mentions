@@ -7,9 +7,10 @@ type Suggestion = {
 };
 
 type MentionData = {
-  id: string;
-  name: string;
   original: string;
+  trigger: string;
+  name: string;
+  id: string;
 };
 
 type RegexMatchResult = {
@@ -37,21 +38,36 @@ type MentionSuggestionsProps = {
   onSuggestionPress: (suggestion: Suggestion) => void;
 };
 
-type MentionsProps = Omit<TextInputProps, 'onChange'> & {
-  value: string;
-  onChange: (value: string) => any;
+type MentionType = {
+  // single trigger character eg '@' or '#'
+  trigger: string;
 
+  // Function for render suggestions
   renderSuggestions?: (props: MentionSuggestionsProps) => ReactNode;
 
-  // Character that will trigger mentions (usually '@')
-  trigger?: string;
+  // Optional callback on keyword change
+  onKeywordChange?: (keyword: string) => void;
 
   // Should we add a space after selected mentions if the mention is at the end of row
   isInsertSpaceAfterMention?: boolean;
 
-  inputRef?: Ref<TextInput>;
+  // Allow spaces in mention name. Sometimes we don't want it (for example in hashtags)
+  isAllowSpacesInName?: boolean;
 
-  mentionTextStyle?: StyleProp<TextStyle>;
+  // Custom mention styles in text input
+  textStyle?: StyleProp<TextStyle>;
+
+  // Plain string generator for mention
+  getPlainString?: (mention: MentionData) => string;
+};
+
+type MentionInputProps = Omit<TextInputProps, 'onChange'> & {
+  value: string;
+  onChange: (value: string) => any;
+
+  mentionTypes?: MentionType[];
+
+  inputRef?: Ref<TextInput>;
 
   containerStyle?: StyleProp<ViewStyle>;
 };
@@ -63,5 +79,6 @@ export {
   Position,
   Part,
   MentionSuggestionsProps,
-  MentionsProps,
+  MentionType,
+  MentionInputProps,
 };
