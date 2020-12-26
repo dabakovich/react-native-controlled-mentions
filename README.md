@@ -95,14 +95,14 @@ API
 
 ### `MentionInput` component props
 
-| **Property name**     | **Description**                                                	    | **Type**                  | **Required** 	| **Default** 	|
-|-------------------	|--------------------------------------------------------------------   |------------------------	|------------   |------------   |
-| `value`             	| The same as in `TextInput`                                            | string                 	| true     	    |               |
-| `onChange`          	| The same as in `TextInput`                                            | (value: string) => void 	| true     	    |               |
-| `mentionTypes`      	| Declare what mention types you want to support (mentions, hashtags) 	| MentionType[]          	| false    	    | []            |
-| `inputRef`          	| Reference to the `TextInput` component inside `MentionInput`	        | Ref\<TextInput>          	| false    	    |               |
-| `containerStyle`    	| Style to the `MentionInput`'s root component                 	        | StyleProp\<TextStyle>     | false    	    |               |
-| ...textInputProps 	| Other text input props                                     	        | TextInputProps         	| false    	    |               |
+| **Property name**     | **Description**                                                	    | **Type**                                  | **Required** 	| **Default** 	|
+|-------------------	|--------------------------------------------------------------------   |----------------------------------------   |------------   |------------   |
+| `value`             	| The same as in `TextInput`                                            | string                 	                | true     	    |               |
+| `onChange`          	| The same as in `TextInput`                                            | (value: string) => void 	                | true     	    |               |
+| `mentionTypes`      	| Declare what mention types you want to support (mentions, hashtags) 	| [MentionType](#mentiontype-type-props)[]  | false    	    | []            |
+| `inputRef`          	| Reference to the `TextInput` component inside `MentionInput`	        | Ref\<TextInput>          	                | false    	    |               |
+| `containerStyle`    	| Style to the `MentionInput`'s root component                 	        | StyleProp\<TextStyle>                     | false    	    |               |
+| ...textInputProps 	| Other text input props                                     	        | TextInputProps         	                | false    	    |               |
 
 ### `MentionType` type props
 
