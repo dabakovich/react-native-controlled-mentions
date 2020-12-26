@@ -136,7 +136,7 @@ Examples where @name is just plain text yet, not mention and `|` is cursor posit
 
 You should call that callback when user selects any suggestion.
 
-###`Suggestion` type props
+### `Suggestion` type props
 
 `id: string`
 
@@ -146,7 +146,7 @@ Unique id for each suggestion.
 
 Name that will be shown in `MentionInput` when user will select the suggestion.
 
-###`MentionData` type props
+### `MentionData` type props
 
 For example, we have that mention value `@[David Tabaka](123)`. Then after parsing that string by `mentionRegEx` we will get next properties:
 
@@ -168,7 +168,7 @@ The extracted id - `123`
 
 ### `mentionRegEx`
 
-```regexp
+```jsregexp
 /(?<original>(?<trigger>.)\[(?<name>([^[]*))]\((?<id>([\d\w-]*))\))/gi;
 ```
 
