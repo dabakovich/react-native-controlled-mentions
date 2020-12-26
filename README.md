@@ -24,15 +24,35 @@ or npm:
 
 ``npm install --save react-native-controlled-mentions``
 
-Example
+Usage
 -
 
-```tsx
-import * as React from 'react';
-import { FC, useState } from 'react';
-import { Pressable, SafeAreaView, Text, View } from 'react-native';
-import { Mentions, MentionSuggestionsProps, Suggestion } from 'react-native-controlled-mentions';
+Import the [MentionInput](#mentioninput-component-props) component:
 
+```tsx
+import { MentionInput } from 'react-native-controlled-mentions'
+```
+
+Replace your [TextInput](https://reactnative.dev/docs/textinput) by [MentionInput](#mentioninput-component-props) component and add the `mentionTypes` property where you can define what mention types you want to support. It takes an array of [MentionType](#mentiontype-type-props) objects.
+
+```tsx
+<Mentions
+  value={value}
+  onChange={setValue}
+
+  mentionTypes={[
+    {
+      trigger: '@', // Should be a single character like '@' or '#'
+      renderSuggestions,
+      textStyle: {fontWeight: 'bold', color: 'blue'}, // The mention style in the input
+    },
+  ]}
+/>
+```
+
+Define your `renderSuggestions` functional component that receive [MentionSuggestionsProps](#mentionsuggestionsprops-type-props):
+
+```tsx
 const suggestions = [
   {id: '1', name: 'David Tabaka'},
   {id: '2', name: 'Mary'},
@@ -41,14 +61,14 @@ const suggestions = [
   {id: '5', name: 'Grey'},
 ];
 
-const MentionSuggestions: FC<MentionSuggestionsProps> = ({keyword, onSuggestionPress}) => {
+const renderSuggestions: FC<MentionSuggestionsProps> = ({keyword, onSuggestionPress}) => {
   if (keyword == null) {
     return null;
   }
 
   return (
     <View>
-      {users
+      {suggestions
         .filter(one => one.name.toLocaleLowerCase().includes(keyword.toLocaleLowerCase()))
         .map(one => (
           <Pressable
@@ -63,57 +83,95 @@ const MentionSuggestions: FC<MentionSuggestionsProps> = ({keyword, onSuggestionP
       }
     </View>
   );
-}
-
-const App = () => {
-  const [value, setValue] = useState('Hello @[Mary](2)! How are you?');
-
-  return (
-    <SafeAreaView>
-      <Mentions
-        value={value}
-        onChange={setValue}
-
-        mentionTypes={[
-          {
-            trigger: '@',
-            renderSuggestions: MentionSuggestions,
-          },
-        ]}
-
-        placeholder="Type here..."
-        style={{padding: 12}}
-      />
-    </SafeAreaView>
-  );
 };
-
-export default App;
 ```
 
-Configuration
+You're done!
+
+The whole example is in the `/example` folder.
+
+API
 -
 
-The `MentionInput` component supports next props:
+### `MentionInput` component props
 
-| Property name     	| Type                   	| Required 	| Default value 	| Description                                                	|
-|-------------------	|------------------------	|----------	|---------------	|------------------------------------------------------------	|
-| value             	| string                 	| true     	|               	|                                                            	|
-| onChange          	| (value: string) => void 	| true     	|               	|                                                            	|
-| mentionTypes      	| MentionType[]          	| false    	| []            	| Here we can declare few mention types (mentions, hashtags) 	|
-| inputRef          	| Ref\<TextInput>          	| false    	|               	|                                                            	|
-| containerStyle    	| StyleProp\<TextStyle>     | false    	|               	|                                                            	|
-| ...textInputProps 	| TextInputProps         	| false    	|               	| Other text input props                                     	|
+| **Property name**     | **Description**                                                	    | **Type**                  | **Required** 	| **Default** 	|
+|-------------------	|--------------------------------------------------------------------   |------------------------	|------------   |------------   |
+| `value`             	| The same as in `TextInput`                                            | string                 	| true     	    |               |
+| `onChange`          	| The same as in `TextInput`                                            | (value: string) => void 	| true     	    |               |
+| `mentionTypes`      	| Declare what mention types you want to support (mentions, hashtags) 	| MentionType[]          	| false    	    | []            |
+| `inputRef`          	| Reference to the `TextInput` component inside `MentionInput`	        | Ref\<TextInput>          	| false    	    |               |
+| `containerStyle`    	| Style to the `MentionInput`'s root component                 	        | StyleProp\<TextStyle>     | false    	    |               |
+| ...textInputProps 	| Other text input props                                     	        | TextInputProps         	| false    	    |               |
 
-`MentionType` props:
+### `MentionType` type props
 
-| Property name             	| Type                                          	| Required 	| Default value 	| Description                                                                       	|
-|---------------------------	|-----------------------------------------------	|----------	|---------------	|-----------------------------------------------------------------------------------	|
-| trigger                   	| string                                        	| true     	|               	| Character that will trigger that mention type                                     	|
-| renderSuggestions         	| (props: MentionSuggestionsProps) => ReactNode 	| false    	|               	| Renderer for mention suggestions                                                  	|
-| isInsertSpaceAfterMention 	| boolean                                       	| false    	| false         	| Should we add a space after selected mentions if the mention is at the end of row 	|
-| textStyle                 	| StyleProp\<TextStyle>                         	| false    	|               	| Text style for mentions in TextInput                                              	|
-| getPlainString            	| (mention: MentionData) => string              	| false    	|               	| Function for generating custom mention text in text input                         	|
+| **Property name**             | **Description**                                                                       | **Type**                                                                              | **Required** 	| **Default** 	|
+|---------------------------	|-----------------------------------------------------------------------------------	|-----------------------------------------------------------------------------------	|------------   |-----------    |
+| `trigger`                   	| Character that will trigger current mention type                                     	| string                                        	                                    | true     	    |               |
+| `renderSuggestions`         	| Renderer for mention suggestions component                                           	| (props: [MentionSuggestionsProps](#mentionsuggestionsprops-type-props)) => ReactNode 	| false    	    |               |
+| `isInsertSpaceAfterMention` 	| Should we add a space after selected mentions if the mention is at the end of row 	| boolean                                       	                                    | false    	    | false         |
+| `textStyle`                 	| Text style for mentions in `TextInput`                                                | StyleProp\<TextStyle>                         	                                    | false    	    |               |
+| `getPlainString`            	| Function for generating custom mention text in text input                         	| (mention: [MentionData](#mentiondata-type-props)) => string              	            | false    	    |               |
+
+### `MentionSuggestionsProps` type props
+
+`keyword: string | undefined`
+
+Keyword that will provide string between trigger character (e.g. '@') and cursor.
+
+If the cursor is not tracking any mention typing the `keyword` will be `undefined`.
+
+Examples where @name is just plain text yet, not mention and `|` is cursor position:
+
+```
+'|abc @name dfg' - keyword is undefined
+'abc @| dfg' - keyword is ''
+'abc @name| dfg' - keyword is 'name'
+'abc @na|me dfg' - keyword is 'na'
+'abc @|name dfg' - keyword is against ''
+'abc @name |dfg' - keyword is against undefined
+```
+`onSuggestionPress: (suggestion: Suggestion) => void`
+
+You should call that callback when user selects any suggestion.
+
+###`Suggestion` type props
+
+`id: string`
+
+Unique id for each suggestion.
+
+`name: string`
+
+Name that will be shown in `MentionInput` when user will select the suggestion.
+
+###`MentionData` type props
+
+For example, we have that mention value `@[David Tabaka](123)`. Then after parsing that string by `mentionRegEx` we will get next properties:
+
+`original: string`
+
+The whole mention value string - `@[David Tabaka](123)`
+
+`trigger: string`
+
+The extracted trigger - `@`
+
+`name: string`
+
+The extracted name - `David Tabaka`
+
+`id: string`
+
+The extracted id - `123`
+
+### `mentionRegEx`
+
+```regexp
+/(?<original>(?<trigger>.)\[(?<name>([^[]*))]\((?<id>([\d\w-]*))\))/gi;
+```
+
 
 Parsing `Mention`'s value
 -
@@ -125,8 +183,8 @@ from `Mention`'s value using your own logic.
 import { mentionRegEx } from 'react-native-controlled-mentions';
 ```
 
-Or you can use `replaceMentionValues` helper to replace all mentions from `Mention`'s input using
-your replacer function that receives `MentionData` type and returns string.
+Or you can use `replaceMentionValues` helper to replace all mentions from `MentionInput`'s input using
+your replacer function that receives [MentionData](#mentiondata-type-props) type and returns string.
 
 ```ts
 import { replaceMentionValues } from 'react-native-controlled-mentions';
@@ -140,16 +198,16 @@ console.log(replaceMentionValues(value, ({name}) => `@${name}`)); // Hello @Davi
 To Do
 -
 
-* Add more customizations
-* Add ability to handle few mention types ("#", "@" etc)
+* Add support for different text formatting (e.g. URLs)
+* ~~Add more customizations~~ DONE
+* ~~Add ability to handle few mention types ("#", "@" etc)~~ DONE
 
 Known issues
 -
 
-* Mention name regex accepts white spaces (eg `{name: ' ', value: 1}`)
+* Mention name regex accepts white spaces (e.g. `{name: ' ', value: 1}`)
 * ~~Keyboard auto-correction not working if suggested word has the same length~~ FIXED
 * ~~Text becomes transparent when setting custom font size in TextInput~~ FIXED
 
 [npm-image]: https://img.shields.io/npm/v/react-native-controlled-mentions
-
 [npm-url]: https://npmjs.org/package/react-native-controlled-mentions
