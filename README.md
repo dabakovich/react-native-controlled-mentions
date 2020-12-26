@@ -74,7 +74,12 @@ const App = () => {
         value={value}
         onChange={setValue}
 
-        renderSuggestions={MentionSuggestions}
+        mentionTypes={[
+          {
+            trigger: '@',
+            renderSuggestions: MentionSuggestions,
+          },
+        ]}
 
         placeholder="Type here..."
         style={{padding: 12}}
@@ -89,19 +94,26 @@ export default App;
 Configuration
 -
 
-The `Mentions` component supports next props:
+The `MentionInput` component supports next props:
 
-| Property name             | Type                                              | Required | Default value | Description                                                                        |
-|---------------------------|---------------------------------------------------|----------|---------------|------------------------------------------------------------------------------------|
-| value                     | string                                            | true     |               |                                                                                    |
-| onChange                  | function (value)                                  | true     |               |                                                                                    |
-| renderSuggestions         | function ({keyword, onSuggestionPress}) ReactNode | false    |               |                                                                                    |
-| trigger                   | string                                            | false    | '@'           | Character that will trigger mentions                                               |
-| isInsertSpaceAfterMention | boolean                                           | false    | false         | Should we add a space after selected mentions if the mention is at the end of row  |
-| inputRef                  | Ref\<TextInput>                                   | false    |               |                                                                                    |
-| mentionTextStyle          | StyleProp\<TextStyle>                             | false    |               | Text style for mentions in TextInput                                               |
-| containerStyle            | StyleProp\<ViewStyle>                             | false    |               |                                                                                    |
-| ...textInputProps         | TextInputProps                                    | false    |               | Other text input props                                                             |
+| Property name     	| Type                   	| Required 	| Default value 	| Description                                                	|
+|-------------------	|------------------------	|----------	|---------------	|------------------------------------------------------------	|
+| value             	| string                 	| true     	|               	|                                                            	|
+| onChange          	| (value: string) => void 	| true     	|               	|                                                            	|
+| mentionTypes      	| MentionType[]          	| false    	| []            	| Here we can declare few mention types (mentions, hashtags) 	|
+| inputRef          	| Ref\<TextInput>          	| false    	|               	|                                                            	|
+| containerStyle    	| StyleProp\<TextStyle>     | false    	|               	|                                                            	|
+| ...textInputProps 	| TextInputProps         	| false    	|               	| Other text input props                                     	|
+
+`MentionType` props:
+
+| Property name             	| Type                                          	| Required 	| Default value 	| Description                                                                       	|
+|---------------------------	|-----------------------------------------------	|----------	|---------------	|-----------------------------------------------------------------------------------	|
+| trigger                   	| string                                        	| true     	|               	| Character that will trigger that mention type                                     	|
+| renderSuggestions         	| (props: MentionSuggestionsProps) => ReactNode 	| false    	|               	| Renderer for mention suggestions                                                  	|
+| isInsertSpaceAfterMention 	| boolean                                       	| false    	| false         	| Should we add a space after selected mentions if the mention is at the end of row 	|
+| textStyle                 	| StyleProp\<TextStyle>                         	| false    	|               	| Text style for mentions in TextInput                                              	|
+| getPlainString            	| (mention: MentionData) => string              	| false    	|               	| Function for generating custom mention text in text input                         	|
 
 Parsing `Mention`'s value
 -

@@ -45,14 +45,8 @@ type MentionType = {
   // Function for render suggestions
   renderSuggestions?: (props: MentionSuggestionsProps) => ReactNode;
 
-  // Optional callback on keyword change
-  onKeywordChange?: (keyword: string) => void;
-
   // Should we add a space after selected mentions if the mention is at the end of row
   isInsertSpaceAfterMention?: boolean;
-
-  // Allow spaces in mention name. Sometimes we don't want it (for example in hashtags)
-  isAllowSpacesInName?: boolean;
 
   // Custom mention styles in text input
   textStyle?: StyleProp<TextStyle>;
