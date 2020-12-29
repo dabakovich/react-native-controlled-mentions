@@ -1,8 +1,8 @@
 # Changelog
 
-## [Unreleased](https://github.com/dabakovich/react-native-controlled-mentions/tree/HEAD)
+## [v1.0.0](https://github.com/dabakovich/react-native-controlled-mentions/tree/v1.0.0) (2020-12-29)
 
-[Full Changelog](https://github.com/dabakovich/react-native-controlled-mentions/compare/v1.0.0-0...HEAD)
+[Full Changelog](https://github.com/dabakovich/react-native-controlled-mentions/compare/v1.0.0-0...v1.0.0)
 
 **Implemented enhancements:**
 
