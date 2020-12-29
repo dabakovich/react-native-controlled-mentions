@@ -1,11 +1,12 @@
 react-native-controlled-mentions [![npm version][npm-image]][npm-url]
 -
-Pretty simple and fully controlled mentions input. It can:
+Pretty simple and fully controlled mention input. It can:
 
 * Gracefully render formatted mentions directly in RN `TextInput` component
+* Support for different mention types (user [@mentions](), **#hashtags**, etc)
 * Use `value`/`onChange` as in usual `TextInput` props
 * Completely typed (written on TypeScript)
-* No need native libraries
+* No need for native libraries
 
 Demo
 -
