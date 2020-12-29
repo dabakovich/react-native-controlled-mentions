@@ -41,5 +41,9 @@
   "dependencies": {
     "diff": "5.0.0",
     "string.prototype.matchall": "4.0.3"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
   }
 }
