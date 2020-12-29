@@ -1,5 +1,25 @@
 # Changelog
 
+## [Unreleased](https://github.com/dabakovich/react-native-controlled-mentions/tree/HEAD)
+
+[Full Changelog](https://github.com/dabakovich/react-native-controlled-mentions/compare/v1.0.0-0...HEAD)
+
+**Implemented enhancements:**
+
+- Suggestions- [\#9](https://github.com/dabakovich/react-native-controlled-mentions/issues/9)
+
+## [v1.0.0-0](https://github.com/dabakovich/react-native-controlled-mentions/tree/v1.0.0-0) (2020-12-25)
+
+[Full Changelog](https://github.com/dabakovich/react-native-controlled-mentions/compare/v0.1.8...v1.0.0-0)
+
+**Implemented enhancements:**
+
+- Input editing is not stable with keyboard auto-correction [\#1](https://github.com/dabakovich/react-native-controlled-mentions/issues/1)
+
+**Merged pull requests:**
+
+- fix: wrong editing with keyboard auto-correction [\#12](https://github.com/dabakovich/react-native-controlled-mentions/pull/12) ([dabakovich](https://github.com/dabakovich))
+
 ## [v0.1.8](https://github.com/dabakovich/react-native-controlled-mentions/tree/v0.1.8) (2020-12-22)
 
 [Full Changelog](https://github.com/dabakovich/react-native-controlled-mentions/compare/v0.1.7...v0.1.8)
@@ -60,10 +80,6 @@
 ## [v0.1.1](https://github.com/dabakovich/react-native-controlled-mentions/tree/v0.1.1) (2020-12-15)
 
 [Full Changelog](https://github.com/dabakovich/react-native-controlled-mentions/compare/v0.1.0...v0.1.1)
-
-**Implemented enhancements:**
-
-- Input editing is not stable with keyboard auto-correction [\#1](https://github.com/dabakovich/react-native-controlled-mentions/issues/1)
 
 ## [v0.1.0](https://github.com/dabakovich/react-native-controlled-mentions/tree/v0.1.0) (2020-12-09)
 

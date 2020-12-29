@@ -13,7 +13,8 @@
     "prepare": "tsc",
     "build": "tsc",
     "test": "jest",
-    "postversion": "git push && git push --tags"
+    "postversion": "git push && git push --tags",
+    "changelog": "github_changelog_generator -u dabakovich -p react-native-controlled-mentions"
   },
   "files": [
     "dist"
