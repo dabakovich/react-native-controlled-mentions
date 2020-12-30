@@ -18,9 +18,10 @@ const getPartIndexByCursor = (parts: Part[], cursor: number, isIncludeEnd?: bool
 
 /**
  * The method for getting parts between two cursor positions.
- *
+ * ```
  * | part1 |   part2   |   part3   |
  *  a b c|d e f g h i j h k|l m n o
+ *  ```
  *  We will get 3 parts here:
  *  1. Part included 'd'
  *  2. Part included 'efghij'
@@ -41,6 +42,10 @@ const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] 
   const newPart = parts[newPartIndex];
 
   let partsInterval: Part[] = [];
+
+  if (!currentPart || !newPart) {
+    return partsInterval;
+  }
 
   // Push whole first affected part or sub-part of the first affected part
   if (currentPart.position.start === cursor && currentPart.position.end <= newCursor) {
@@ -106,9 +111,11 @@ const generateValueFromPartsAndChangedText = (parts: Part[], originalText: strin
        * - In case we have two affected parts we should push first
        */
       default: {
-        newParts = newParts.concat(getPartsInterval(parts, cursor, change.count));
+        if (change.count !== 0) {
+          newParts = newParts.concat(getPartsInterval(parts, cursor, change.count));
 
-        cursor += change.count;
+          cursor += change.count;
+        }
 
         break;
       }
