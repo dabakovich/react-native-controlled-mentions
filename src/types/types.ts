@@ -14,6 +14,9 @@ type MentionData = {
 };
 
 type RegexMatchResult = {
+  // Matched string
+  0: string;
+
   // Start position of matched text in whole string
   index: number;
 
@@ -27,18 +30,12 @@ type Position = {
   end: number;
 };
 
-type Part = {
-  text: string;
-  position: Position;
-  data?: MentionData;
-};
-
 type MentionSuggestionsProps = {
   keyword: string | undefined;
   onSuggestionPress: (suggestion: Suggestion) => void;
 };
 
-type MentionType = {
+type MentionPartType = {
   // single trigger character eg '@' or '#'
   trigger: string;
 
@@ -55,11 +52,29 @@ type MentionType = {
   getPlainString?: (mention: MentionData) => string;
 };
 
+type PatternPartType = {
+  // RexExp with global flag
+  pattern: RegExp;
+
+  textStyle?: StyleProp<TextStyle>;
+};
+
+type PartType = MentionPartType | PatternPartType;
+
+type Part = {
+  text: string;
+  position: Position;
+
+  partType?: PartType;
+
+  data?: MentionData;
+};
+
 type MentionInputProps = Omit<TextInputProps, 'onChange'> & {
   value: string;
   onChange: (value: string) => any;
 
-  mentionTypes?: MentionType[];
+  partTypes?: PartType[];
 
   inputRef?: Ref<TextInput>;
 
@@ -73,6 +88,8 @@ export {
   Position,
   Part,
   MentionSuggestionsProps,
-  MentionType,
+  MentionPartType,
+  PatternPartType,
+  PartType,
   MentionInputProps,
 };

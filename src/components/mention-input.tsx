@@ -7,12 +7,13 @@ import {
   View,
 } from 'react-native';
 
-import { MentionInputProps, MentionType, Suggestion } from '../types';
+import { MentionInputProps, MentionPartType, Suggestion } from '../types';
 import {
   defaultMentionTextStyle,
   generateValueFromPartsAndChangedText,
   generateValueWithAddedSuggestion,
-  getPartsFromValue,
+  isMentionPartType,
+  parseValue,
 } from '../utils';
 
 const MentionInput: FC<MentionInputProps> = (
@@ -20,7 +21,7 @@ const MentionInput: FC<MentionInputProps> = (
     value,
     onChange,
 
-    mentionTypes = [],
+    partTypes = [],
 
     inputRef: propInputRef,
 
@@ -35,7 +36,10 @@ const MentionInput: FC<MentionInputProps> = (
 
   const [selection, setSelection] = useState({start: 0, end: 0});
 
-  const {plainText, parts} = useMemo(() => getPartsFromValue(mentionTypes, value), [value]);
+  const {
+    plainText,
+    parts,
+  } = useMemo(() => parseValue(value, partTypes), [value, partTypes]);
 
   const handleSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
     setSelection(event.nativeEvent.selection);
@@ -68,7 +72,7 @@ const MentionInput: FC<MentionInputProps> = (
   const keywordByTrigger = useMemo((): { [trigger: string]: string | undefined } => {
     const newKeywordByTrigger: { [trigger: string]: string | undefined } = {};
 
-    mentionTypes.forEach((mentionType) => {
+    partTypes.filter(isMentionPartType).forEach((mentionPartType) => {
       if (selection.end != selection.start) {
         return undefined;
       }
@@ -77,7 +81,7 @@ const MentionInput: FC<MentionInputProps> = (
         return undefined;
       }
 
-      const triggerIndex = plainText.lastIndexOf(mentionType.trigger, selection.end);
+      const triggerIndex = plainText.lastIndexOf(mentionPartType.trigger, selection.end);
       const spaceIndex = plainText.lastIndexOf(' ', selection.end - 1);
       const newLineIndex = plainText.lastIndexOf('\n', selection.end - 1);
 
@@ -99,7 +103,7 @@ const MentionInput: FC<MentionInputProps> = (
 
         // When we have a mention just after space
         case spaceIndex + 1 === triggerIndex:
-          newKeywordByTrigger[mentionType.trigger] = plainText.substring(
+          newKeywordByTrigger[mentionPartType.trigger] = plainText.substring(
             triggerIndex + 1,
             selection.end,
           );
@@ -107,14 +111,14 @@ const MentionInput: FC<MentionInputProps> = (
     });
 
     return newKeywordByTrigger;
-  }, [parts, plainText, selection, mentionTypes]);
+  }, [parts, plainText, selection, partTypes]);
 
   /**
    * Callback on mention suggestion press. We should:
    * - Get updated value
    * - Trigger onChange callback with new value
    */
-  const onSuggestionPress = (mentionType: MentionType) => (suggestion: Suggestion) => {
+  const onSuggestionPress = (mentionType: MentionPartType) => (suggestion: Suggestion) => {
     const newValue = generateValueWithAddedSuggestion(
       parts,
       mentionType,
@@ -157,8 +161,8 @@ const MentionInput: FC<MentionInputProps> = (
 
   return (
     <View style={containerStyle}>
-      {mentionTypes
-        .filter(one => one.renderSuggestions != null)
+      {(partTypes
+        .filter(one => isMentionPartType(one) && one.renderSuggestions != null) as MentionPartType[])
         .map((mentionType) => (
           <React.Fragment key={mentionType.trigger}>
             {mentionType.renderSuggestions && mentionType.renderSuggestions({
@@ -180,10 +184,10 @@ const MentionInput: FC<MentionInputProps> = (
         onSelectionChange={handleSelectionChange}
       >
         <Text>
-          {parts.map(({text, data}, index) => data ? (
+          {parts.map(({text, partType, data}, index) => partType ? (
             <Text
-              key={`${index}-${data.trigger}`}
-              style={mentionTypes?.find(one => one.trigger === data.trigger)?.textStyle ?? defaultMentionTextStyle}
+              key={`${index}-${data?.trigger ?? 'pattern'}`}
+              style={partType.textStyle ?? defaultMentionTextStyle}
             >
               {text}
             </Text>

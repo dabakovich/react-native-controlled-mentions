@@ -56,7 +56,7 @@ const App = () => {
         value={value}
         onChange={setValue}
 
-        mentionTypes={[
+        partTypes={[
           {
             trigger: '@',
             renderSuggestions: renderMentionSuggestions,
@@ -65,6 +65,10 @@ const App = () => {
             trigger: '#',
             renderSuggestions: renderHashtagSuggestions,
             textStyle: {fontWeight: 'bold', color: 'grey'},
+          },
+          {
+            pattern: /(https?:\/\/|www\.)[-a-zA-Z0-9@:%._\+~#=]{1,256}\.(xn--)?[a-z0-9-]{2,20}\b([-a-zA-Z0-9@:%_\+\[\],.~#?&\/=]*[-a-zA-Z0-9@:%_\+\]~#?&\/=])*/gi,
+            textStyle: {color: 'blue'},
           },
         ]}
 

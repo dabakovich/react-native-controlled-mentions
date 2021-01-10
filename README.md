@@ -34,14 +34,14 @@ Import the [MentionInput](#mentioninput-component-props) component:
 import { MentionInput } from 'react-native-controlled-mentions'
 ```
 
-Replace your [TextInput](https://reactnative.dev/docs/textinput) by [MentionInput](#mentioninput-component-props) component and add the `mentionTypes` property where you can define what mention types you want to support. It takes an array of [MentionType](#mentiontype-type-props) objects.
+Replace your [TextInput](https://reactnative.dev/docs/textinput) by [MentionInput](#mentioninput-component-props) component and add the `partTypes` property where you can define what mention or pattern types you want to support. It takes an array of [PartType](#parttype-type) objects.
 
 ```tsx
 <Mentions
   value={value}
   onChange={setValue}
 
-  mentionTypes={[
+  partTypes={[
     {
       trigger: '@', // Should be a single character like '@' or '#'
       renderSuggestions,
@@ -100,12 +100,15 @@ API
 |-------------------	|--------------------------------------------------------------------   |----------------------------------------   |------------   |------------   |
 | `value`             	| The same as in `TextInput`                                            | string                 	                | true     	    |               |
 | `onChange`          	| The same as in `TextInput`                                            | (value: string) => void 	                | true     	    |               |
-| `mentionTypes`      	| Declare what mention types you want to support (mentions, hashtags) 	| [MentionType](#mentiontype-type-props)[]  | false    	    | []            |
+| `partTypes`      	    | Declare what part types you want to support (mentions, hashtags, urls)| [PartType](#parttype-type)[]              | false    	    | []            |
 | `inputRef`          	| Reference to the `TextInput` component inside `MentionInput`	        | Ref\<TextInput>          	                | false    	    |               |
 | `containerStyle`    	| Style to the `MentionInput`'s root component                 	        | StyleProp\<TextStyle>                     | false    	    |               |
 | ...textInputProps 	| Other text input props                                     	        | TextInputProps         	                | false    	    |               |
 
-### `MentionType` type props
+### `PartType` type
+[MentionPartType](#mentionparttype-type-props) | [PatternPartType](#patternparttype-type-props)
+
+### `MentionPartType` type props
 
 | **Property name**             | **Description**                                                                       | **Type**                                                                              | **Required** 	| **Default** 	|
 |---------------------------	|-----------------------------------------------------------------------------------	|-----------------------------------------------------------------------------------	|------------   |-----------    |
@@ -114,6 +117,13 @@ API
 | `isInsertSpaceAfterMention` 	| Should we add a space after selected mentions if the mention is at the end of row 	| boolean                                       	                                    | false    	    | false         |
 | `textStyle`                 	| Text style for mentions in `TextInput`                                                | StyleProp\<TextStyle>                         	                                    | false    	    |               |
 | `getPlainString`            	| Function for generating custom mention text in text input                         	| (mention: [MentionData](#mentiondata-type-props)) => string              	            | false    	    |               |
+
+### `PatternPartType` type props
+
+| **Property name**             | **Description**                                                                       | **Type**                                                                              | **Required** 	| **Default** 	|
+|---------------------------	|-----------------------------------------------------------------------------------	|-----------------------------------------------------------------------------------	|------------   |-----------    |
+| `pattern`                   	| RegExp for parsing a pattern, should include global flag                              | RegExp                                        	                                    | true     	    |               |
+| `textStyle`                 	| Text style for pattern in `TextInput`                                                 | StyleProp\<TextStyle>                         	                                    | false    	    |               |
 
 ### `MentionSuggestionsProps` type props
 
@@ -199,7 +209,7 @@ console.log(replaceMentionValues(value, ({name}) => `@${name}`)); // Hello @Davi
 To Do
 -
 
-* Add support for different text formatting (e.g. URLs)
+* ~~Add support for different text formatting (e.g. URLs)~~
 * ~~Add more customizations~~ DONE
 * ~~Add ability to handle few mention types ("#", "@" etc)~~ DONE
 
