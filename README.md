@@ -8,6 +8,8 @@ Pretty simple and fully controlled mention input. It can:
 * Completely typed (written on TypeScript)
 * No need for native libraries
 
+In addition, you can add custom styling for a regex pattern (like URLs) using the optimized recursive function for parsing the value.
+
 Demo
 -
 Try it on Expo Snack: https://snack.expo.io/@dabakovich/mentionsapp
