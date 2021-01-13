@@ -39,7 +39,7 @@ import { MentionInput } from 'react-native-controlled-mentions'
 Replace your [TextInput](https://reactnative.dev/docs/textinput) by [MentionInput](#mentioninput-component-props) component and add the `partTypes` property where you can define what mention or pattern types you want to support. It takes an array of [PartType](#parttype-type) objects.
 
 ```tsx
-<Mentions
+<MentionInput
   value={value}
   onChange={setValue}
 
@@ -186,11 +186,11 @@ The extracted id - `123`
 ```
 
 
-Parsing `Mention`'s value
+Parsing `MentionInput`'s value
 -
 
 You can import RegEx that is using in the component and then extract all your mentions
-from `Mention`'s value using your own logic.
+from `MentionInput`'s value using your own logic.
 
 ```ts
 import { mentionRegEx } from 'react-native-controlled-mentions';
@@ -206,6 +206,74 @@ const value = 'Hello @[David Tabaka](5)! How are you?';
 
 console.log(replaceMentionValues(value, ({id}) => `@${id}`)); // Hello @5! How are you?
 console.log(replaceMentionValues(value, ({name}) => `@${name}`)); // Hello @David Tabaka! How are you?
+```
+
+Rendering `MentionInput`'s value
+-
+If you want to parse and render your value somewhere else you can use `parseValue` tool which gives you array of parts and then use your own part renderer to resolve this issue.
+
+Here is an example:
+```tsx
+import {
+  Part,
+  PartType,
+  parseValue,
+  isMentionPartType,
+} from 'react-native-controlled-mentions';
+
+/**
+ * Part renderer
+ * 
+ * @param part
+ * @param index
+ */
+const renderPart = (
+  part: Part,
+  index: number,
+) => {
+  // Just plain text
+  if (!part.partType) {
+    return <Text key={index}>{part.text}</Text>;
+  }
+
+  // Mention type part
+  if (isMentionPartType(part.partType)) {
+    return (
+      <Text
+        key={`${index}-${part.data?.trigger}`}
+        style={part.partType.textStyle}
+        onPress={() => console.log('Pressed', part.data)}
+      >
+        {part.text}
+      </Text>
+    );
+  }
+
+  // Other styled part types
+  return (
+    <Text
+      key={`${index}-pattern`}
+      style={part.partType.textStyle}
+    >
+      {part.text}
+    </Text>
+  );
+};
+
+/**
+ * Value renderer. Parsing value to parts array and then mapping the array using 'renderPart'
+ * 
+ * @param value - value from MentionInput
+ * @param partTypes - the part types array that you providing to MentionInput
+ */
+const renderValue: FC = (
+  value: string,
+  partTypes: PartType[],
+) => {
+  const {parts} = parseValue(value, partTypes);
+
+  return <Text>{parts.map(renderPart)}</Text>;
+};
 ```
 
 To Do
