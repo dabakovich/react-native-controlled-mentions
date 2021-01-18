@@ -5,6 +5,7 @@ import {
   generatePlainTextPart,
   generateValueFromPartsAndChangedText,
   getMentionValue,
+  replaceMentionValues,
 } from '../src/utils';
 
 const users = [
@@ -91,4 +92,14 @@ test('generates value from parts and changed text', () => {
 
   const newValue = generateValueFromPartsAndChangedText(parts, plainText, 'Hey David!');
   expect(newValue).toEqual<string>('Hey David!');
+});
+
+test('replacing mention\'s value', () => {
+  const value = '@[David](1) and @[Mary](2)';
+
+  const replacedById = replaceMentionValues(value, ({id}) => `@${id}`);
+  expect(replacedById).toEqual<string>('@1 and @2');
+
+  const replacedByName = replaceMentionValues(value, ({name}) => `@${name}`);
+  expect(replacedByName).toEqual<string>('@David and @Mary');
 });
