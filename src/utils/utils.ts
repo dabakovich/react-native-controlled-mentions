@@ -4,7 +4,7 @@ import { StyleProp, TextStyle } from 'react-native';
 import matchAll from 'string.prototype.matchall';
 import { MentionData, MentionType, Part, Position, RegexMatchResult, Suggestion } from '../types';
 
-const mentionRegEx = /(?<original>(?<trigger>.)\[(?<name>([^[]*))]\((?<id>([\d\w-]*))\))/gi;
+const mentionRegEx = /(?<original>(?<trigger>.)\[(?<name>[^[]*)]\((?<id>[\d\w-]*)\))/gi;
 
 const defaultMentionTextStyle: StyleProp<TextStyle> = {fontWeight: 'bold', color: 'blue'};
 
@@ -326,7 +326,7 @@ const getValueFromParts = (parts: Part[]) => parts
 const replaceMentionValues = (
   value: string,
   replacer: (mention: MentionData) => string,
-) => value.replace(mentionRegEx, (mention, original, trigger, name, id) => replacer({
+) => value.replace(mentionRegEx, (fullMatch, original, trigger, name, id) => replacer({
   original,
   trigger,
   name,
