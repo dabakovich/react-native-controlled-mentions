@@ -87,6 +87,33 @@ test('generates correct parts length from value', () => {
   ).toEqual(6);
 });
 
+test('generates correct parts', () => {
+  const mentionValue = '@[David](1:@)';
+  const expectedMentionPart = {
+    partType: mentionPartType,
+    text: '@David',
+    data: {
+      id: '1:@',
+      name: 'David',
+      trigger: '@',
+      original: '@[David](1:@)',
+    },
+    position: {start: 0, end: 6},
+  };
+
+  let {parts} = parseValue(mentionValue, [mentionPartType]);
+
+  expect(parts).toEqual<Part[]>([expectedMentionPart]);
+
+  ({parts} = parseValue(`${mentionValue} hey!`, [mentionPartType]));
+
+  expect(parts).toEqual<Part[]>([
+    expectedMentionPart,
+    {text: ' hey!', position: {start: 6, end: 11}},
+  ]);
+
+});
+
 test('generates value from parts and changed text', () => {
   const {parts, plainText} = parseValue('Hey', [mentionPartType]);
 
