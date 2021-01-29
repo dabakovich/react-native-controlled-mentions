@@ -2,17 +2,9 @@ import { Change, diffChars } from 'diff';
 import { StyleProp, TextStyle } from 'react-native';
 // @ts-ignore the lib do not have TS declarations yet
 import matchAll from 'string.prototype.matchall';
-import {
-  MentionData,
-  MentionPartType,
-  Part,
-  PartType,
-  Position,
-  RegexMatchResult,
-  Suggestion,
-} from '../types';
+import { MentionData, MentionPartType, Part, PartType, Position, RegexMatchResult, Suggestion } from '../types';
 
-const mentionRegEx = /(?<original>(?<trigger>.)\[(?<name>[^[]*)]\((?<id>[^[]*)\))/gi;
+const mentionRegEx = /(?<original>(?<trigger>.)\[(?<name>[^[]*)]\((?<id>[^(]*)\))/gi;
 
 const defaultMentionTextStyle: StyleProp<TextStyle> = {fontWeight: 'bold', color: 'blue'};
 
