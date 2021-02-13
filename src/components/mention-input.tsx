@@ -159,18 +159,24 @@ const MentionInput: FC<MentionInputProps> = (
     }
   };
 
+  const renderMentionSuggestions = (mentionType: MentionPartType) => (
+    <React.Fragment key={mentionType.trigger}>
+      {mentionType.renderSuggestions && mentionType.renderSuggestions({
+        keyword: keywordByTrigger[mentionType.trigger],
+        onSuggestionPress: onSuggestionPress(mentionType),
+      })}
+    </React.Fragment>
+  );
+
   return (
     <View style={containerStyle}>
       {(partTypes
-        .filter(one => isMentionPartType(one) && one.renderSuggestions != null) as MentionPartType[])
-        .map((mentionType) => (
-          <React.Fragment key={mentionType.trigger}>
-            {mentionType.renderSuggestions && mentionType.renderSuggestions({
-              keyword: keywordByTrigger[mentionType.trigger],
-              onSuggestionPress: onSuggestionPress(mentionType),
-            })}
-          </React.Fragment>
-        ))
+        .filter(one => (
+          isMentionPartType(one)
+          && one.renderSuggestions != null
+          && !one.isBottomMentionSuggestionsRender
+        )) as MentionPartType[])
+        .map(renderMentionSuggestions)
       }
 
       <TextInput
@@ -196,6 +202,15 @@ const MentionInput: FC<MentionInputProps> = (
           ))}
         </Text>
       </TextInput>
+
+      {(partTypes
+        .filter(one => (
+          isMentionPartType(one)
+          && one.renderSuggestions != null
+          && one.isBottomMentionSuggestionsRender
+        )) as MentionPartType[])
+        .map(renderMentionSuggestions)
+      }
     </View>
   );
 };

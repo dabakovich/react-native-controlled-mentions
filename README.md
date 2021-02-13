@@ -112,13 +112,14 @@ API
 
 ### `MentionPartType` type props
 
-| **Property name**             | **Description**                                                                       | **Type**                                                                              | **Required** 	| **Default** 	|
-|---------------------------	|-----------------------------------------------------------------------------------	|-----------------------------------------------------------------------------------	|------------   |-----------    |
-| `trigger`                   	| Character that will trigger current mention type                                     	| string                                        	                                    | true     	    |               |
-| `renderSuggestions`         	| Renderer for mention suggestions component                                           	| (props: [MentionSuggestionsProps](#mentionsuggestionsprops-type-props)) => ReactNode 	| false    	    |               |
-| `isInsertSpaceAfterMention` 	| Should we add a space after selected mentions if the mention is at the end of row 	| boolean                                       	                                    | false    	    | false         |
-| `textStyle`                 	| Text style for mentions in `TextInput`                                                | StyleProp\<TextStyle>                         	                                    | false    	    |               |
-| `getPlainString`            	| Function for generating custom mention text in text input                         	| (mention: [MentionData](#mentiondata-type-props)) => string              	            | false    	    |               |
+| **Property name**                     | **Description**                                                                       | **Type**                                                                              | **Required** 	| **Default** 	|
+|------------------------------------	|-----------------------------------------------------------------------------------	|-----------------------------------------------------------------------------------	|------------   |-----------    |
+| `trigger`                   	        | Character that will trigger current mention type                                     	| string                                        	                                    | true     	    |               |
+| `renderSuggestions`         	        | Renderer for mention suggestions component                                           	| (props: [MentionSuggestionsProps](#mentionsuggestionsprops-type-props)) => ReactNode 	| false    	    |               |
+| `isInsertSpaceAfterMention` 	        | Should we add a space after selected mentions if the mention is at the end of row 	| boolean                                       	                                    | false    	    | false         |
+| `isBottomMentionSuggestionsRender` 	| Should we render either at the top or bottom of the input                          	| boolean                                       	                                    | false    	    |               |
+| `textStyle`                 	        | Text style for mentions in `TextInput`                                                | StyleProp\<TextStyle>                         	                                    | false    	    |               |
+| `getPlainString`            	        | Function for generating custom mention text in text input                         	| (mention: [MentionData](#mentiondata-type-props)) => string              	            | false    	    |               |
 
 ### `PatternPartType` type props
 

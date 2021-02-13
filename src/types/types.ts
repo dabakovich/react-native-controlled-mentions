@@ -45,6 +45,9 @@ type MentionPartType = {
   // Should we add a space after selected mentions if the mention is at the end of row
   isInsertSpaceAfterMention?: boolean;
 
+  // Should we render either at the top or bottom of the input
+  isBottomMentionSuggestionsRender?: boolean;
+
   // Custom mention styles in text input
   textStyle?: StyleProp<TextStyle>;
 
