@@ -1,10 +1,11 @@
 import { MentionPartType, Part, PartType, PatternPartType } from '../src/types';
 import {
   generateMentionPart,
-  parseValue,
   generatePlainTextPart,
   generateValueFromPartsAndChangedText,
+  getMentionPartSuggestionKeywords,
   getMentionValue,
+  parseValue,
   replaceMentionValues,
 } from '../src/utils';
 
@@ -119,6 +120,28 @@ test('generates value from parts and changed text', () => {
 
   const newValue = generateValueFromPartsAndChangedText(parts, plainText, 'Hey David!');
   expect(newValue).toEqual<string>('Hey David!');
+});
+
+test('getting correct mention part type keywords', () => {
+  const text = 'Hello @David Tabaka how are you?';
+
+  const {parts, plainText} = parseValue(text, [mentionPartType]);
+
+  expect(getMentionPartSuggestionKeywords(
+    parts, plainText, {start: 0, end: 0}, [mentionPartType]
+  )).toEqual({'@': undefined});
+  expect(getMentionPartSuggestionKeywords(
+    parts, plainText, {start: 7, end: 7}, [mentionPartType]
+  )).toEqual({'@': ''});
+  expect(getMentionPartSuggestionKeywords(
+    parts, plainText, {start: 12, end: 12}, [mentionPartType]
+  )).toEqual({'@': 'David'});
+  expect(getMentionPartSuggestionKeywords(
+    parts, plainText, {start: 19, end: 19}, [mentionPartType]
+  )).toEqual({'@': 'David Tabaka'});
+  expect(getMentionPartSuggestionKeywords(
+    parts, plainText, {start: 20, end: 20}, [mentionPartType]
+  )).toEqual({'@': undefined});
 });
 
 test('replacing mention\'s value', () => {

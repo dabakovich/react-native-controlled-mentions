@@ -74,6 +74,84 @@ const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] 
 };
 
 /**
+ * Function for getting object with keyword for each mention part type
+ *
+ * If keyword is undefined then we don't tracking mention typing and shouldn't show suggestions.
+ * If keyword is not undefined (even empty string '') then we are tracking mention typing.
+ *
+ * Examples where @name is just plain text yet, not mention:
+ * '|abc @name dfg' - keyword is undefined
+ * 'abc @| dfg' - keyword is ''
+ * 'abc @name| dfg' - keyword is 'name'
+ * 'abc @na|me dfg' - keyword is 'na'
+ * 'abc @|name dfg' - keyword is against ''
+ * 'abc @name |dfg' - keyword is 'name '
+ * 'abc @name dfg|' - keyword is 'name dfg'
+ * 'abc @name dfg |' - keyword is undefined (we have more than one space)
+ * 'abc @name dfg he|' - keyword is undefined (we have more than one space)
+ */
+const getMentionPartSuggestionKeywords = (
+  parts: Part[],
+  plainText: string,
+  selection: Position,
+  partTypes: PartType[],
+): { [trigger: string]: string | undefined } => {
+  const keywordByTrigger: { [trigger: string]: string | undefined } = {};
+
+  partTypes.filter(isMentionPartType).forEach((
+    {
+      trigger,
+      allowedSpacesCount = 1,
+    },
+  ) => {
+    keywordByTrigger[trigger] = undefined;
+
+    // Check if we don't have selection range
+    if (selection.end != selection.start) {
+      return;
+    }
+
+    // Check if the cursor is not in some mention part
+    if (parts.some(one => one.data != null && selection.end >= one.position.start && selection.end <= one.position.end)) {
+      return;
+    }
+
+    const triggerIndex = plainText.lastIndexOf(trigger, selection.end);
+
+    // Return undefined if the trigger index is not event found
+    if (triggerIndex == -1) {
+      return;
+    }
+
+    // Looking for break lines and spaces between the current cursor and trigger
+    let spacesCount = 0;
+    for (let cursor = selection.end - 1; cursor >= triggerIndex; cursor -= 1) {
+      // Mention cannot have new line
+      if (plainText[cursor] === '\n') {
+        return;
+      }
+
+      // Incrementing space counter if the next symbol is space
+      if (plainText[cursor] === ' ') {
+        spacesCount += 1;
+
+        // Check maximum allowed spaces in trigger word
+        if (spacesCount > allowedSpacesCount) {
+          return;
+        }
+      }
+    }
+
+    keywordByTrigger[trigger] = plainText.substring(
+      triggerIndex + 1,
+      selection.end,
+    );
+  });
+
+  return keywordByTrigger;
+};
+
+/**
  * Generates new value when we changing text.
  *
  * @param parts full parts list
@@ -159,11 +237,6 @@ const generateValueWithAddedSuggestion = (
   }
 
   const triggerPartIndex = currentPart.text.lastIndexOf(mentionType.trigger, selection.end - currentPart.position.start);
-  const spacePartIndex = currentPart.text.lastIndexOf(' ', selection.end - currentPart.position.start - 1);
-
-  if (spacePartIndex > triggerPartIndex) {
-    return;
-  }
 
   const newMentionPartPosition: Position = {
     start: triggerPartIndex,
@@ -373,6 +446,7 @@ export {
   mentionRegEx,
   defaultMentionTextStyle,
   isMentionPartType,
+  getMentionPartSuggestionKeywords,
   generateValueFromPartsAndChangedText,
   generateValueWithAddedSuggestion,
   generatePlainTextPart,

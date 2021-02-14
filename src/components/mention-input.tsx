@@ -12,6 +12,7 @@ import {
   defaultMentionTextStyle,
   generateValueFromPartsAndChangedText,
   generateValueWithAddedSuggestion,
+  getMentionPartSuggestionKeywords,
   isMentionPartType,
   parseValue,
 } from '../utils';
@@ -57,60 +58,15 @@ const MentionInput: FC<MentionInputProps> = (
   };
 
   /**
-   * We memoize the keyword to know should we show mention suggestions or not.
-   * If keyword is undefined then we don't tracking mention typing and shouldn't show suggestions.
-   * If keyword is not undefined (even empty string '') then we are tracking mention typing.
-   *
-   * Examples where @name is just plain text yet, not mention:
-   * '|abc @name dfg' - keyword is undefined
-   * 'abc @| dfg' - keyword is ''
-   * 'abc @name| dfg' - keyword is 'name'
-   * 'abc @na|me dfg' - keyword is 'na'
-   * 'abc @|name dfg' - keyword is against ''
-   * 'abc @name |dfg' - keyword is against undefined'
+   * We memoize the keyword to know should we show mention suggestions or not
    */
-  const keywordByTrigger = useMemo((): { [trigger: string]: string | undefined } => {
-    const newKeywordByTrigger: { [trigger: string]: string | undefined } = {};
-
-    partTypes.filter(isMentionPartType).forEach((mentionPartType) => {
-      if (selection.end != selection.start) {
-        return undefined;
-      }
-
-      if (parts.some(one => one.data != null && selection.end >= one.position.start && selection.end <= one.position.end)) {
-        return undefined;
-      }
-
-      const triggerIndex = plainText.lastIndexOf(mentionPartType.trigger, selection.end);
-      const spaceIndex = plainText.lastIndexOf(' ', selection.end - 1);
-      const newLineIndex = plainText.lastIndexOf('\n', selection.end - 1);
-
-      switch (true) {
-        case triggerIndex == -1:
-          return undefined;
-
-        case triggerIndex === selection.end:
-          return undefined;
-
-        case triggerIndex < spaceIndex:
-          return undefined;
-
-        // When we have a mention at the very beginning of text
-        case spaceIndex == -1 && newLineIndex == -1:
-
-        // When we have a mention on the new line
-        case newLineIndex + 1 === triggerIndex:
-
-        // When we have a mention just after space
-        case spaceIndex + 1 === triggerIndex:
-          newKeywordByTrigger[mentionPartType.trigger] = plainText.substring(
-            triggerIndex + 1,
-            selection.end,
-          );
-      }
-    });
-
-    return newKeywordByTrigger;
+  const keywordByTrigger = useMemo(() => {
+    return getMentionPartSuggestionKeywords(
+      parts,
+      plainText,
+      selection,
+      partTypes,
+    );
   }, [parts, plainText, selection, partTypes]);
 
   /**

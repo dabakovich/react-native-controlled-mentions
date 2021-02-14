@@ -42,6 +42,9 @@ type MentionPartType = {
   // Function for render suggestions
   renderSuggestions?: (props: MentionSuggestionsProps) => ReactNode;
 
+  // How much spaces are allowed for mention keyword
+  allowedSpacesCount?: number;
+
   // Should we add a space after selected mentions if the mention is at the end of row
   isInsertSpaceAfterMention?: boolean;
 
