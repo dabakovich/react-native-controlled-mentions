@@ -111,15 +111,24 @@ const getMentionPartSuggestionKeywords = (
       return;
     }
 
-    // Check if the cursor is not in some mention part
-    if (parts.some(one => one.data != null && selection.end >= one.position.start && selection.end <= one.position.end)) {
+    // Find the part with the cursor
+    const part = parts.find(one => selection.end > one.position.start && selection.end <= one.position.end);
+
+    // Check if the cursor is not in mention type part
+    if (part == null || part.data != null) {
       return;
     }
 
     const triggerIndex = plainText.lastIndexOf(trigger, selection.end);
 
-    // Return undefined if the trigger index is not event found
-    if (triggerIndex == -1) {
+    // Return undefined in case when:
+    if (
+      // - the trigger index is not event found
+      triggerIndex == -1
+
+      // - the trigger index is out of found part with selection cursor
+      || triggerIndex < part.position.start
+    ) {
       return;
     }
 

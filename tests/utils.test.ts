@@ -123,9 +123,9 @@ test('generates value from parts and changed text', () => {
 });
 
 test('getting correct mention part type keywords', () => {
-  const text = 'Hello @David Tabaka how are you?';
+  let text = 'Hello @David Tabaka how are you?';
 
-  const {parts, plainText} = parseValue(text, [mentionPartType]);
+  let {parts, plainText} = parseValue(text, [mentionPartType]);
 
   expect(getMentionPartSuggestionKeywords(
     parts, plainText, {start: 0, end: 0}, [mentionPartType]
@@ -141,6 +141,25 @@ test('getting correct mention part type keywords', () => {
   )).toEqual({'@': 'David Tabaka'});
   expect(getMentionPartSuggestionKeywords(
     parts, plainText, {start: 20, end: 20}, [mentionPartType]
+  )).toEqual({'@': undefined});
+
+  // Text with already present mention part type
+  text = 'Hello @[David](2b) how are you?';
+  ({parts, plainText} = parseValue(text, [mentionPartType]));
+
+  // 'Hello @[Dav|id](2b) how are you?' - should not find keyword due to the we are in mention
+  expect(getMentionPartSuggestionKeywords(
+    parts, plainText, {start: 10, end: 10}, [mentionPartType]
+  )).toEqual({'@': undefined});
+
+  // 'Hello @[David](2b) ho|w are you?' - should not find keyword due to the we have mention there
+  expect(getMentionPartSuggestionKeywords(
+    parts, plainText, {start: 15, end: 15}, [mentionPartType]
+  )).toEqual({'@': undefined});
+
+  // 'Hello @[David](2b)| how are you?' - should not find keyword due to the we have mention there
+  expect(getMentionPartSuggestionKeywords(
+    parts, plainText, {start: 12, end: 12}, [mentionPartType]
   )).toEqual({'@': undefined});
 });
 
