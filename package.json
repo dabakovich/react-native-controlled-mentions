@@ -35,8 +35,8 @@
     "typescript": "4.0.5"
   },
   "peerDependencies": {
-    "react": ">=16.0",
-    "react-native": ">=0.57"
+    "react": "16.13.1",
+    "react-native": "https://github.com/expo/react-native/archive/sdk-40.0.1.tar.gz"
   },
   "dependencies": {
     "diff": "5.0.0",
