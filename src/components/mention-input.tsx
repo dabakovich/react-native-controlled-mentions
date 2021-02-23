@@ -5,6 +5,7 @@ import {
   TextInput,
   TextInputSelectionChangeEventData,
   View,
+  Platform
 } from 'react-native';
 
 import { MentionInputProps, MentionPartType, Suggestion } from '../types';
@@ -27,6 +28,7 @@ const MentionInput: FC<MentionInputProps> = (
     inputRef: propInputRef,
 
     containerStyle,
+    overlayContainerStyle,
 
     onSelectionChange,
 
@@ -74,7 +76,7 @@ const MentionInput: FC<MentionInputProps> = (
    * - Get updated value
    * - Trigger onChange callback with new value
    */
-  const onSuggestionPress = (mentionType: MentionPartType) => (suggestion: Suggestion) => {
+  const onSuggestionPress = (mentionType: MentionPartType, keyword: String) => (suggestion: Suggestion) => {
     const newValue = generateValueWithAddedSuggestion(
       parts,
       mentionType,
@@ -90,17 +92,24 @@ const MentionInput: FC<MentionInputProps> = (
     onChange(newValue);
 
     /**
-     * Move cursor to the end of just added mention starting from trigger string and including:
-     * - Length of trigger string
-     * - Length of mention name
-     * - Length of space after mention (1)
-     *
-     * Not working now due to the RN bug
+     * Refocus on the input that was just blurred by a click event on PLATFORM.OS web
+     * Not an issue for PLATFORM.OS ios|android because keyboard events are not handled
      */
-    // const newCursorPosition = currentPart.position.start + triggerPartIndex + trigger.length +
-    // suggestion.name.length + 1;
+    if (Platform.OS === 'web') {
+      textInput.current?.focus();
 
-    // textInput.current?.setNativeProps({selection: {start: newCursorPosition, end: newCursorPosition}});
+      /**
+       * Move cursor to the end of just added mention - especially important for PLATFORM.OS web:
+       * - Previous selection position
+       * + Length of mention name
+       * - Length of trigger string
+       * - Keyword text (i.e. "mi" for @Mike)
+       * + Length of space after mention (1)
+       */
+      const newCursorPosition = selection.start + suggestion.name.length - mentionType.trigger.length - keyword.length + 2;
+
+      setSelection({start: newCursorPosition, end: newCursorPosition}); //<TextInput selection doesn't seem to work on mobile
+    }
   };
 
   const handleTextInputRef = (ref: TextInput) => {
@@ -119,7 +128,7 @@ const MentionInput: FC<MentionInputProps> = (
     <React.Fragment key={mentionType.trigger}>
       {mentionType.renderSuggestions && mentionType.renderSuggestions({
         keyword: keywordByTrigger[mentionType.trigger],
-        onSuggestionPress: onSuggestionPress(mentionType),
+        onSuggestionPress: onSuggestionPress(mentionType, keywordByTrigger[mentionType.trigger] || ''),
       })}
     </React.Fragment>
   );
@@ -134,18 +143,18 @@ const MentionInput: FC<MentionInputProps> = (
         )) as MentionPartType[])
         .map(renderMentionSuggestions)
       }
-
-      <TextInput
-        {...textInputProps}
-
-        ref={handleTextInputRef}
-
-        multiline
-
-        onChangeText={onChangeInput}
-        onSelectionChange={handleSelectionChange}
-      >
-        <Text>
+      <View>
+        <TextInput
+          {...textInputProps}
+          value={plainText}
+          ref={handleTextInputRef}
+          multiline
+          {...Platform.OS === 'web' ? {selection} : {}}
+          onChangeText={onChangeInput}
+          onSelectionChange={handleSelectionChange}
+        />
+        {/** @ts-expect-error */}
+        <Text style={{position: 'absolute', paddingTop: Platform.OS === 'web' ? 0 : 5, ...textInputProps.style, ...overlayContainerStyle}} pointerEvents={'none'}>
           {parts.map(({text, partType, data}, index) => partType ? (
             <Text
               key={`${index}-${data?.trigger ?? 'pattern'}`}
@@ -157,8 +166,7 @@ const MentionInput: FC<MentionInputProps> = (
             <Text key={index}>{text}</Text>
           ))}
         </Text>
-      </TextInput>
-
+      </View>
       {(partTypes
         .filter(one => (
           isMentionPartType(one)

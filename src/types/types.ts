@@ -85,6 +85,7 @@ type MentionInputProps = Omit<TextInputProps, 'onChange'> & {
   inputRef?: Ref<TextInput>;
 
   containerStyle?: StyleProp<ViewStyle>;
+  overlayContainerStyle?: StyleProp<ViewStyle>;
 };
 
 export {
