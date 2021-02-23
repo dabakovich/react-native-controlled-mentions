@@ -150,7 +150,6 @@ const MentionInput: FC<MentionInputProps> = (
           ref={handleTextInputRef}
           multiline
           {...Platform.OS === 'web' ? {selection} : {}}
-          // selection={selection}
           onChangeText={onChangeInput}
           onSelectionChange={handleSelectionChange}
         />
