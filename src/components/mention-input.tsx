@@ -104,9 +104,9 @@ const MentionInput: FC<MentionInputProps> = (
        * + Length of mention name
        * - Length of trigger string
        * - Keyword text (i.e. "mi" for @Mike)
-       * + Length of space after mention (1)
+       * +? Length of space after mention (1)
        */
-      const newCursorPosition = selection.start + suggestion.name.length - mentionType.trigger.length - keyword.length + 2;
+      const newCursorPosition = selection.start + suggestion.name.length - mentionType.trigger.length - keyword.length + (mentionType.isInsertSpaceAfterMention ? 1 : 0) + 1;
 
       setSelection({start: newCursorPosition, end: newCursorPosition}); //<TextInput selection doesn't seem to work on mobile
     }
