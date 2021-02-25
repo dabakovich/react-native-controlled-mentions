@@ -349,7 +349,7 @@ const getMentionValue = (trigger: string, suggestion: Suggestion) => `${trigger}
  * @param positionOffset - offset from the very beginning of plain text
  */
 const parseValue = (
-  value: string,
+  value: string = '',
   partTypes: PartType[],
   positionOffset = 0,
 ): { plainText: string; parts: Part[] } => {
