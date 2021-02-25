@@ -136,11 +136,11 @@ const MentionInput: FC<MentionInputProps> = (
       }
 
       <TextInput
+        multiline
+
         {...textInputProps}
 
         ref={handleTextInputRef}
-
-        multiline
 
         onChangeText={onChangeInput}
         onSelectionChange={handleSelectionChange}
