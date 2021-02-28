@@ -2,9 +2,25 @@ import { Change, diffChars } from 'diff';
 import { StyleProp, TextStyle } from 'react-native';
 // @ts-ignore the lib do not have TS declarations yet
 import matchAll from 'string.prototype.matchall';
-import { MentionData, MentionPartType, Part, PartType, Position, RegexMatchResult, Suggestion } from '../types';
+import {
+  MentionData,
+  MentionPartType,
+  Part,
+  PartType,
+  Position,
+  RegexMatchResult,
+  Suggestion,
+} from '../types';
 
-const mentionRegEx = /(?<original>(?<trigger>.)\[(?<name>[^[]*)]\((?<id>[^(]*)\))/gi;
+/**
+ * RegEx grouped results. Example - "@[Full Name](123abc)"
+ * We have 4 groups here:
+ * - The whole original string - "@[Full Name](123abc)"
+ * - Mention trigger - "@"
+ * - Name - "Full Name"
+ * - Id - "123abc"
+ */
+const mentionRegEx = /((.)\[([^[]*)]\(([^(]*)\))/gi;
 
 const defaultMentionTextStyle: StyleProp<TextStyle> = {fontWeight: 'bold', color: 'blue'};
 
@@ -318,20 +334,14 @@ const generateMentionPart = (mentionPartType: MentionPartType, mention: MentionD
  * @param result - matched regex result
  * @param positionOffset - position offset from the very beginning of text
  */
-const generateRegexResultPart = (partType: PartType, result: RegexMatchResult, positionOffset = 0): Part => {
-  if (isMentionPartType(partType)) {
-    return generateMentionPart(partType, result.groups, positionOffset);
-  }
-
-  return {
-    text: result[0],
-    position: {
-      start: positionOffset,
-      end: positionOffset + result[0].length,
-    },
-    partType,
-  };
-};
+const generateRegexResultPart = (partType: PartType, result: RegexMatchResult, positionOffset = 0): Part => ({
+  text: result[0],
+  position: {
+    start: positionOffset,
+    end: positionOffset + result[0].length,
+  },
+  partType,
+});
 
 /**
  * Method for generation mention value that accepts mention regex
@@ -340,6 +350,13 @@ const generateRegexResultPart = (partType: PartType, result: RegexMatchResult, p
  * @param suggestion
  */
 const getMentionValue = (trigger: string, suggestion: Suggestion) => `${trigger}[${suggestion.name}](${suggestion.id})`;
+
+const getMentionDataFromRegExMatchResult = ([, original, trigger, name, id]: RegexMatchResult): MentionData => ({
+  original,
+  trigger,
+  name,
+  id,
+});
 
 /**
  * Recursive function for deep parse MentionInput's value and get plainText with parts
@@ -386,12 +403,22 @@ const parseValue = (
     for (let i = 0; i < matches.length; i++) {
       const result = matches[i];
 
-      // Matched pattern is a mention and the mention doesn't match current mention type
-      // We should parse the mention with rest part types
-      if (isMentionPartType(partType) && result.groups.trigger !== partType.trigger) {
-        const plainTextAndParts = parseValue(result['0'], restPartTypes, positionOffset + plainText.length);
-        parts = parts.concat(plainTextAndParts.parts);
-        plainText += plainTextAndParts.plainText;
+      if (isMentionPartType(partType)) {
+        const mentionData = getMentionDataFromRegExMatchResult(result);
+
+        // Matched pattern is a mention and the mention doesn't match current mention type
+        // We should parse the mention with rest part types
+        if (mentionData.trigger !== partType.trigger) {
+          const plainTextAndParts = parseValue(mentionData.original, restPartTypes, positionOffset + plainText.length);
+          parts = parts.concat(plainTextAndParts.parts);
+          plainText += plainTextAndParts.plainText;
+        } else {
+          const part = generateMentionPart(partType, mentionData, positionOffset + plainText.length);
+
+          parts.push(part);
+
+          plainText += part.text;
+        }
       } else {
         const part = generateRegexResultPart(partType, result, positionOffset + plainText.length);
 
@@ -419,7 +446,7 @@ const parseValue = (
     }
   }
 
-  // Exiting from generatePartsFromValue
+  // Exiting from parseValue
   return {
     plainText,
     parts,
@@ -460,7 +487,6 @@ export {
   generateValueWithAddedSuggestion,
   generatePlainTextPart,
   generateMentionPart,
-  generateRegexResultPart,
   getMentionValue,
   parseValue,
   getValueFromParts,

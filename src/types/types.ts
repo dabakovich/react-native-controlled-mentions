@@ -13,9 +13,21 @@ type MentionData = {
   id: string;
 };
 
-type RegexMatchResult = {
+type RegexMatchResult = string[] & {
   // Matched string
   0: string;
+
+  // original
+  1: string;
+
+  // trigger
+  2: string;
+
+  // name
+  3: string;
+
+  // id
+  4: string;
 
   // Start position of matched text in whole string
   index: number;
