@@ -280,7 +280,7 @@ const generateValueWithAddedSuggestion = (
  * @param text - plain text that will be added to the part
  * @param positionOffset - position offset from the very beginning of text
  */
-const generatePlainTextPart = (text: string, positionOffset = 0): Part => ({
+const generatePlainTextPart = (text: string = '', positionOffset = 0): Part => ({
   text,
   position: {
     start: positionOffset,
