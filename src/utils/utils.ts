@@ -271,7 +271,7 @@ const generateValueWithAddedSuggestion = (
     generatePlainTextPart(`${isInsertSpaceToNextPart ? ' ' : ''}${currentPart.text.substring(newMentionPartPosition.end)}`),
 
     ...parts.slice(currentPartIndex + 1),
-  ]) + ' ';
+  ]);
 };
 
 /**
