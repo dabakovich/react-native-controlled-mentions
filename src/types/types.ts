@@ -31,9 +31,6 @@ type RegexMatchResult = string[] & {
 
   // Start position of matched text in whole string
   index: number;
-
-  // Group names (duplicates MentionData type)
-  groups: MentionData;
 };
 
 // The same as text selection state
@@ -48,7 +45,7 @@ type MentionSuggestionsProps = {
 };
 
 type MentionPartType = {
-  // single trigger character eg '@' or '#'
+  // Single trigger character eg '@' or '#'
   trigger: string;
 
   // Function for render suggestions
@@ -68,6 +65,12 @@ type MentionPartType = {
 
   // Plain string generator for mention
   getPlainString?: (mention: MentionData) => string;
+
+  // Custom regex pattern
+  pattern?: RegExp;
+
+  // Required function when we have custom regex pattern
+  parsePattern?: (regexParseResult: string[] & { index: number }) => MentionData,
 };
 
 type PatternPartType = {

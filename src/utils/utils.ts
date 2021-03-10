@@ -153,7 +153,7 @@ const getMentionPartSuggestionKeywords = (
 
     // Looking for break lines and spaces between the current cursor and trigger
     let spacesCount = 0;
-    for (let cursor = selection.end - 1; cursor >= triggerIndex; cursor -= 1) {
+    for (let cursor = selection.end - 1; cursor >= triggerIndex + trigger.length - 1; cursor -= 1) {
       // Mention cannot have new line
       if (plainText[cursor] === '\n') {
         return;
@@ -171,7 +171,7 @@ const getMentionPartSuggestionKeywords = (
     }
 
     keywordByTrigger[trigger] = plainText.substring(
-      triggerIndex + 1,
+      triggerIndex + trigger.length,
       selection.end,
     );
   });
@@ -387,7 +387,7 @@ const parseValue = (
   } else {
     const [partType, ...restPartTypes] = partTypes;
 
-    const regex = isMentionPartType(partType) ? mentionRegEx : partType.pattern;
+    const regex = partType.pattern ?? mentionRegEx;
 
     const matches: RegexMatchResult[] = Array.from(matchAll(value ?? '', regex));
 
@@ -410,7 +410,8 @@ const parseValue = (
       const result = matches[i];
 
       if (isMentionPartType(partType)) {
-        const mentionData = getMentionDataFromRegExMatchResult(result);
+        const regexMatchResultParser = partType.parsePattern ?? getMentionDataFromRegExMatchResult;
+        const mentionData = regexMatchResultParser(result);
 
         // Matched pattern is a mention and the mention doesn't match current mention type
         // We should parse the mention with rest part types
