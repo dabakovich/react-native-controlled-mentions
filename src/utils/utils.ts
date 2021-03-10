@@ -299,7 +299,7 @@ const generateValueWithAddedSuggestion = (
  * @param text - plain text that will be added to the part
  * @param positionOffset - position offset from the very beginning of text
  */
-const generatePlainTextPart = (text: string = '', positionOffset = 0): Part => ({
+const generatePlainTextPart = (text: string, positionOffset = 0): Part => ({
   text,
   position: {
     start: positionOffset,
@@ -369,10 +369,13 @@ const getMentionDataFromRegExMatchResult = ([, original, trigger, name, id]: Reg
  * @param positionOffset - offset from the very beginning of plain text
  */
 const parseValue = (
-  value: string = '',
+  value: string,
   partTypes: PartType[],
   positionOffset = 0,
 ): { plainText: string; parts: Part[] } => {
+  if (value == null) {
+    value = '';
+  }
 
   let plainText = '';
   let parts: Part[] = [];
