@@ -292,5 +292,9 @@ Known issues
 * ~~Keyboard auto-correction not working if suggested word has the same length~~ FIXED
 * ~~Text becomes transparent when setting custom font size in TextInput~~ FIXED
 
+Support Me
+-
+<a href="https://www.buymeacoffee.com/dabakovich" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+
 [npm-image]: https://img.shields.io/npm/v/react-native-controlled-mentions
 [npm-url]: https://npmjs.org/package/react-native-controlled-mentions
