@@ -161,6 +161,29 @@ test('getting correct mention part type keywords', () => {
   expect(getMentionPartSuggestionKeywords(
     parts, plainText, {start: 12, end: 12}, [mentionPartType]
   )).toEqual({'@': undefined});
+
+  // Text with email entering
+  text = 'Hello dabakovich@gmail.com';
+  ({parts, plainText} = parseValue(text, [mentionPartType]));
+
+  // 'Hello dabakovich@gmail.com' - should not find keyword due to the we don't have space or new line before trigger
+  expect(getMentionPartSuggestionKeywords(
+    parts, plainText, {start: 17, end: 17}, [mentionPartType]
+  )).toEqual({'@': undefined});
+
+  // Text with triggers at the beginning of string or line
+  text = '@\n@';
+  ({parts, plainText} = parseValue(text, [mentionPartType]));
+
+  // 'Hello dabakovich@gmail.com' - should find trigger at the beginning of string
+  expect(getMentionPartSuggestionKeywords(
+    parts, plainText, {start: 1, end: 1}, [mentionPartType]
+  )).toEqual({'@': ''});
+
+  // 'Hello dabakovich@gmail.com' - should find trigger at the beginning of line
+  expect(getMentionPartSuggestionKeywords(
+    parts, plainText, {start: 3, end: 3}, [mentionPartType]
+  )).toEqual({'@': ''});
 });
 
 test('replacing mention\'s value', () => {

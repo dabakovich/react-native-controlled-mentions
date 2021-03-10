@@ -144,6 +144,9 @@ const getMentionPartSuggestionKeywords = (
 
       // - the trigger index is out of found part with selection cursor
       || triggerIndex < part.position.start
+
+      // - the trigger is not at the beginning and we don't have space or new line before trigger
+      || (triggerIndex > 0 && !/[\s\n]/gi.test(plainText[triggerIndex - 1]))
     ) {
       return;
     }
@@ -296,7 +299,7 @@ const generateValueWithAddedSuggestion = (
  * @param text - plain text that will be added to the part
  * @param positionOffset - position offset from the very beginning of text
  */
-const generatePlainTextPart = (text: string, positionOffset = 0): Part => ({
+const generatePlainTextPart = (text: string = '', positionOffset = 0): Part => ({
   text,
   position: {
     start: positionOffset,
