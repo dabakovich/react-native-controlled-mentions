@@ -1,8 +1,9 @@
-import { Change, diffChars } from 'diff';
+import { diffChars } from 'diff';
 import { StyleProp, TextStyle } from 'react-native';
 // @ts-ignore the lib do not have TS declarations yet
 import matchAll from 'string.prototype.matchall';
 import {
+  CharactersDiffChange,
   MentionData,
   MentionPartType,
   Part,
@@ -25,8 +26,6 @@ const mentionRegEx = /((.)\[([^[]*)]\(([^(^)]*)\))/gi;
 const defaultMentionTextStyle: StyleProp<TextStyle> = {fontWeight: 'bold', color: 'blue'};
 
 const defaultPlainStringGenerator = ({trigger}: MentionPartType, {name}: MentionData) => `${trigger}${name}`;
-
-type CharactersDiffChange = Omit<Change, 'count'> & { count: number };
 
 const isMentionPartType = (partType: PartType): partType is MentionPartType => {
   return (partType as MentionPartType).trigger != null;

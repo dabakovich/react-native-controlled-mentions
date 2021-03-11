@@ -1,3 +1,9 @@
 export * from './components';
-export { Suggestion, MentionSuggestionsProps } from './types';
-export { mentionRegEx, parseValue, replaceMentionValues, getMentionValue } from './utils';
+
+export type {
+  Suggestion, Part, MentionSuggestionsProps, PartType,
+} from './types';
+
+export {
+  mentionRegEx, isMentionPartType, getMentionValue, parseValue, replaceMentionValues,
+} from './utils';
