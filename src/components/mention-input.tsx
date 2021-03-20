@@ -71,7 +71,7 @@ const MentionInput: FC<MentionInputProps> = (
    * @param newParts 
    */
   const partDataHasChanged = (newParts: Part[]) => {
-    const partsWithData = newParts.filter(part => part.partType);
+    const partsWithData = newParts.filter(part => part.partType && isMentionPartType(part.partType));
     const newPartsData = partsWithData.reduce((acc, part) => {
       const id = part.data?.id;
       const name = part.data?.name;

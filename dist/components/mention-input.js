@@ -68,7 +68,7 @@ const MentionInput = (_a) => {
      * @param newParts
      */
     const partDataHasChanged = (newParts) => {
-        const partsWithData = newParts.filter(part => part.partType);
+        const partsWithData = newParts.filter(part => part.partType && utils_1.isMentionPartType(part.partType));
         const newPartsData = partsWithData.reduce((acc, part) => {
             var _a, _b, _c;
             const id = (_a = part.data) === null || _a === void 0 ? void 0 : _a.id;
