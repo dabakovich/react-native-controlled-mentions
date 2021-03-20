@@ -2,6 +2,6 @@
 #
 .idea
 node_modules/
-dist
+dist/
 npm-debug.log
 yarn-error.log
