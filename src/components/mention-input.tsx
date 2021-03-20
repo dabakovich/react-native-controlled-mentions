@@ -75,10 +75,10 @@ const MentionInput: FC<MentionInputProps> = (
     const newPartsData = partsWithData.reduce((acc, part) => {
       const id = part.data?.id;
       const name = part.data?.name;
-      const data = partsData.find(pd => pd.id === id);
+      const partData = partsData.find(pd => pd.id === id);
       const accI = acc.findIndex(ad => ad.id === id);
       const lastValue = acc[accI];
-      const val = { cant: (lastValue?.cant ?? 0) + 1, data, id, name } as PartData;
+      const val = { cant: (lastValue?.cant ?? 0) + 1, data: partData?.data, id, name } as PartData;
       AddOrEdit(acc, val, accI);
       return acc;
     }, [] as PartData[]);
@@ -126,7 +126,7 @@ const MentionInput: FC<MentionInputProps> = (
     const copyPartsData = [...partsData];
     const i = copyPartsData.findIndex(ad => ad.id === suggestion.id);
     const lastValue = copyPartsData[i];
-    const val = { 
+    const val = {
       cant: (lastValue?.cant ?? 0) + 1, 
       data: suggestion, 
       id: suggestion.id, 

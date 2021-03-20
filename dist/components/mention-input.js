@@ -73,10 +73,10 @@ const MentionInput = (_a) => {
             var _a, _b, _c;
             const id = (_a = part.data) === null || _a === void 0 ? void 0 : _a.id;
             const name = (_b = part.data) === null || _b === void 0 ? void 0 : _b.name;
-            const data = partsData.find(pd => pd.id === id);
+            const partData = partsData.find(pd => pd.id === id);
             const accI = acc.findIndex(ad => ad.id === id);
             const lastValue = acc[accI];
-            const val = { cant: ((_c = lastValue === null || lastValue === void 0 ? void 0 : lastValue.cant) !== null && _c !== void 0 ? _c : 0) + 1, data, id, name };
+            const val = { cant: ((_c = lastValue === null || lastValue === void 0 ? void 0 : lastValue.cant) !== null && _c !== void 0 ? _c : 0) + 1, data: partData === null || partData === void 0 ? void 0 : partData.data, id, name };
             AddOrEdit(acc, val, accI);
             return acc;
         }, []);
