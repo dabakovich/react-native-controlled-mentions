@@ -43,7 +43,7 @@ const MentionInput: FC<MentionInputProps> = (
   const textInput = useRef<TextInput | null>(null);
 
   const [selection, setSelection] = useState({start: 0, end: 0});
-  const [partsData, setPartsData] = useState(defaultPartsData);
+  const [partsData, setPartsData] = useState<PartData[]>(defaultPartsData);
 
   const {
     plainText,

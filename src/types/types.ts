@@ -16,7 +16,7 @@ type MentionData = {
 type PartData = {
   name: string;
   id: string;
-  cant: number;
+  cant?: number;
   data: any;
 };
 
