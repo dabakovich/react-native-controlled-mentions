@@ -103,7 +103,7 @@ type MentionInputProps = Omit<TextInputProps, 'onChange'> & {
   // returns an array with the data passed in the onSuggestionPress method in renderSuggestion. It allows you to overload with data in case you need more than the name and the id
   onChangePartsData: (partsData: PartData[]) => void;
   // Default value for partsData, useful when MentionInput is passed a value by the 'value' or 'defaultValue' property that the user has not entered. This property is only used as an initial value.
-  defaultPartsData: PartData[];
+  defaultPartsData: Omit<PartData, 'cant'>[];
   partTypes?: PartType[];
 
   inputRef?: Ref<TextInput>;
