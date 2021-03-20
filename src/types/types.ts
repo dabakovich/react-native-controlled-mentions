@@ -13,6 +13,12 @@ type MentionData = {
   name: string;
   id: string;
 };
+type PartData = {
+  name: string;
+  id: string;
+  cant: number;
+  data: any;
+};
 
 type CharactersDiffChange = Omit<Change, 'count'> & { count: number };
 
@@ -93,8 +99,8 @@ type Part = {
 
 type MentionInputProps = Omit<TextInputProps, 'onChange'> & {
   value: string;
-  onChange: (value: string) => any;
-
+  onChange: (value: string) => void;
+  onChangePartsData: (partsData: PartData[]) => void;
   partTypes?: PartType[];
 
   inputRef?: Ref<TextInput>;
@@ -114,4 +120,5 @@ export type {
   PatternPartType,
   PartType,
   MentionInputProps,
+  PartData
 };

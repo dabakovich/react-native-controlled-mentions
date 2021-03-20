@@ -4,10 +4,10 @@ import {
   Text,
   TextInput,
   TextInputSelectionChangeEventData,
-  View,
+  View
 } from 'react-native';
 
-import { MentionInputProps, MentionPartType, Suggestion } from '../types';
+import { MentionInputProps, MentionPartType, Suggestion, PartData, Part } from '../types';
 import {
   defaultMentionTextStyle,
   generateValueFromPartsAndChangedText,
@@ -16,7 +16,13 @@ import {
   isMentionPartType,
   parseValue,
 } from '../utils';
-
+const AddOrEdit = <S extends unknown>(arr: S[], val: S, i: number) => {
+  if(i === -1) {
+    arr.push(val);
+  } else {
+    arr[i] = val;
+  }
+}
 const MentionInput: FC<MentionInputProps> = (
   {
     value,
@@ -29,13 +35,14 @@ const MentionInput: FC<MentionInputProps> = (
     containerStyle,
 
     onSelectionChange,
-
+    onChangePartsData,
     ...textInputProps
-  },
+  } : MentionInputProps,
 ) => {
   const textInput = useRef<TextInput | null>(null);
 
   const [selection, setSelection] = useState({start: 0, end: 0});
+  const [partsData, setPartsData] = useState<PartData[]>([]);
 
   const {
     plainText,
@@ -54,9 +61,38 @@ const MentionInput: FC<MentionInputProps> = (
    * @param changedText
    */
   const onChangeInput = (changedText: string) => {
-    onChange(generateValueFromPartsAndChangedText(parts, plainText, changedText));
+    const newValue = generateValueFromPartsAndChangedText(parts, plainText, changedText);
+    const { parts: newParts } = parseValue(newValue, partTypes);
+    partDataHasChanged(newParts);    
+    onChange(newValue);
   };
-
+  /**
+   * Determines when the onChangePartsData event should triggerred
+   * @param newParts 
+   */
+  const partDataHasChanged = (newParts: Part[]) => {
+    const partsWithData = newParts.filter(part => part.partType);
+    const newPartsData = partsWithData.reduce((acc, part) => {
+      const id = part.data?.id;
+      const name = part.data?.name;
+      const data = partsData.find(pd => pd.id === id);
+      const accI = acc.findIndex(ad => ad.id === id);
+      const lastValue = acc[accI];
+      const val = { cant: (lastValue?.cant ?? 0) + 1, data, id, name } as PartData;
+      AddOrEdit(acc, val, accI);
+      return acc;
+    }, [] as PartData[]);
+    const eventMustBeTriggered = newPartsData.length !== partsData.length 
+      || newPartsData.some(npd => partsData.find(pd => pd.id === npd.id)?.cant !== npd.cant);
+    if(eventMustBeTriggered)
+      ChangePartsData(newPartsData);
+  };
+  const ChangePartsData = (newPartsData: PartData[]) => {
+    setPartsData(newPartsData);
+    if(typeof onChangePartsData === 'function'){
+      onChangePartsData(newPartsData);
+    }
+  };
   /**
    * We memoize the keyword to know should we show mention suggestions or not
    */
@@ -86,6 +122,18 @@ const MentionInput: FC<MentionInputProps> = (
     if (!newValue) {
       return;
     }
+    //
+    const copyPartsData = [...partsData];
+    const i = copyPartsData.findIndex(ad => ad.id === suggestion.id);
+    const lastValue = copyPartsData[i];
+    const val = { 
+      cant: (lastValue?.cant ?? 0) + 1, 
+      data: suggestion, 
+      id: suggestion.id, 
+      name: suggestion.name 
+    } as PartData;
+    AddOrEdit(copyPartsData, val, i);
+    ChangePartsData(copyPartsData);
 
     onChange(newValue);
 

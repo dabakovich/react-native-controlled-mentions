@@ -25,6 +25,10 @@
     "url": "git+https://github.com/dabakovich/react-native-controlled-mentions.git"
   },
   "author": "David Tabaka <dabakovich@gmail.com>",
+  "contributors": [
+    "David Tabaka",
+    "Denifer Santiago"
+  ],
   "license": "MIT",
   "devDependencies": {
     "@types/diff": "^4.0.2",
