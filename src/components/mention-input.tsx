@@ -23,6 +23,7 @@ const AddOrEdit = <S extends unknown>(arr: S[], val: S, i: number) => {
     arr[i] = val;
   }
 }
+
 const MentionInput: FC<MentionInputProps> = (
   {
     value,
@@ -33,7 +34,7 @@ const MentionInput: FC<MentionInputProps> = (
     inputRef: propInputRef,
 
     containerStyle,
-
+    defaultPartsData = [],
     onSelectionChange,
     onChangePartsData,
     ...textInputProps
@@ -42,7 +43,7 @@ const MentionInput: FC<MentionInputProps> = (
   const textInput = useRef<TextInput | null>(null);
 
   const [selection, setSelection] = useState({start: 0, end: 0});
-  const [partsData, setPartsData] = useState<PartData[]>([]);
+  const [partsData, setPartsData] = useState(defaultPartsData);
 
   const {
     plainText,
