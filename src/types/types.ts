@@ -13,6 +13,12 @@ type MentionData = {
   name: string;
   id: string;
 };
+type PartData = {
+  name: string;
+  id: string;
+  cant?: number;
+  data: any;
+};
 
 type CharactersDiffChange = Omit<Change, 'count'> & { count: number };
 
@@ -93,8 +99,11 @@ type Part = {
 
 type MentionInputProps = Omit<TextInputProps, 'onChange'> & {
   value: string;
-  onChange: (value: string) => any;
-
+  onChange: (value: string) => void;
+  // returns an array with the data passed in the onSuggestionPress method in renderSuggestion. It allows you to overload with data in case you need more than the name and the id
+  onChangePartsData: (partsData: PartData[]) => void;
+  // Default value for partsData, useful when MentionInput is passed a value by the 'value' or 'defaultValue' property that the user has not entered. This property is only used as an initial value.
+  defaultPartsData: Omit<PartData, 'cant'>[];
   partTypes?: PartType[];
 
   inputRef?: Ref<TextInput>;
@@ -114,4 +123,5 @@ export type {
   PatternPartType,
   PartType,
   MentionInputProps,
+  PartData
 };
