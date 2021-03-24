@@ -1,5 +1,5 @@
 import type { Change } from 'diff';
-import type { ReactNode, Ref } from 'react';
+import type { ReactElement, ReactNode, Ref } from 'react';
 import type { StyleProp, TextInput, TextInputProps, TextStyle, ViewStyle } from 'react-native';
 
 type Suggestion = {
@@ -55,7 +55,7 @@ type MentionPartType = {
   trigger: string;
 
   // Function for render suggestions
-  renderSuggestions?: (props: MentionSuggestionsProps) => ReactNode;
+  renderSuggestions?: (props: MentionSuggestionsProps) => ReactElement | null;
 
   // How much spaces are allowed for mention keyword
   allowedSpacesCount?: number;

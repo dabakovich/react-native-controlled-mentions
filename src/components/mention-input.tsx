@@ -116,12 +116,15 @@ const MentionInput: FC<MentionInputProps> = (
   };
 
   const renderMentionSuggestions = (mentionType: MentionPartType) => (
-    <React.Fragment key={mentionType.trigger}>
-      {mentionType.renderSuggestions && mentionType.renderSuggestions({
-        keyword: keywordByTrigger[mentionType.trigger],
-        onSuggestionPress: onSuggestionPress(mentionType),
-      })}
-    </React.Fragment>
+    mentionType.renderSuggestions
+      ? (
+        <mentionType.renderSuggestions
+          key={mentionType.trigger}
+          keyword={keywordByTrigger[mentionType.trigger]}
+          onSuggestionPress={onSuggestionPress(mentionType)}
+        />
+      )
+      : null
   );
 
   return (
