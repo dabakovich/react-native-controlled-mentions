@@ -41,7 +41,7 @@ test('generates plain text part', () => {
 });
 
 test('generates regex result part', () => {
-  const mentionValue = getMentionValue(mentionPartType.trigger, users[1]);
+  const mentionValue = getMentionValue(mentionPartType, users[1]);
   expect(mentionValue).toEqual(`@[Mary](2b)`);
 
   const mentionData = {original: mentionValue, trigger: mentionPartType.trigger, ...users[1]};
