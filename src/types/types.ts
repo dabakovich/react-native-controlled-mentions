@@ -71,6 +71,9 @@ type MentionPartType = {
 
   // Required function when we have custom regex pattern
   parsePattern?: (regexParseResult: string[] & { index: number }) => MentionData,
+
+  // Custom transformation for getting mention value
+  getMentionValue?: (trigger: string, id: string, name: string) => string;
 };
 
 type PatternPartType = {

@@ -281,7 +281,7 @@ const generateValueWithAddedSuggestion = (
     // Create part with string before mention
     generatePlainTextPart(currentPart.text.substring(0, newMentionPartPosition.start)),
     generateMentionPart(mentionType, {
-      original: getMentionValue(mentionType.trigger, suggestion),
+      original: getMentionValue(mentionType, suggestion),
       trigger: mentionType.trigger,
       ...suggestion,
     }),
@@ -349,10 +349,18 @@ const generateRegexResultPart = (partType: PartType, result: RegexMatchResult, p
 /**
  * Method for generation mention value that accepts mention regex
  *
- * @param trigger
+ * @param mentionType
  * @param suggestion
  */
-const getMentionValue = (trigger: string, suggestion: Suggestion) => `${trigger}[${suggestion.name}](${suggestion.id})`;
+const getMentionValue = (mentionType: MentionPartType, suggestion: Suggestion) => {
+  let value = `${mentionType.trigger}[${suggestion.name}](${suggestion.id})`;
+
+  if (mentionType.getMentionValue) {
+      value = mentionType.getMentionValue(mentionType.trigger, suggestion.id, suggestion.name);
+  }
+
+  return value;
+};
 
 const getMentionDataFromRegExMatchResult = ([, original, trigger, name, id]: RegexMatchResult): MentionData => ({
   original,
