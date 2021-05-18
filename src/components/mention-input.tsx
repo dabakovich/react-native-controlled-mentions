@@ -89,6 +89,8 @@ const MentionInput: FC<MentionInputProps> = (
 
     onChange(newValue);
 
+    textInput.current?.focus();
+
     /**
      * Move cursor to the end of just added mention starting from trigger string and including:
      * - Length of trigger string
