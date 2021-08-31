@@ -1,5 +1,5 @@
 {
-  "name": "react-native-controlled-mentions",
+  "name": "@venncity/react-native-controlled-mentions",
   "version": "2.2.5",
   "description": "Fully controlled React Native mentions component",
   "keywords": [
