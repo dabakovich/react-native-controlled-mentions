@@ -54,6 +54,8 @@ type MentionPartType = {
   // single trigger character eg '@' or '#'
   trigger: string;
 
+  allowTriggerAfterNonWhitespace: boolean;
+
   // Function for render suggestions
   renderSuggestions?: (props: MentionSuggestionsProps) => ReactNode;
 

@@ -116,6 +116,7 @@ const getMentionPartSuggestionKeywords = (
   partTypes.filter(isMentionPartType).forEach((
     {
       trigger,
+      allowTriggerAfterNonWhitespace,
       allowedSpacesCount = 1,
     },
   ) => {
@@ -145,7 +146,7 @@ const getMentionPartSuggestionKeywords = (
       || triggerIndex < part.position.start
 
       // - the trigger is not at the beginning and we don't have space or new line before trigger
-      || (triggerIndex > 0 && !/[\s\n]/gi.test(plainText[triggerIndex - 1]))
+      || (!allowTriggerAfterNonWhitespace && triggerIndex > 0 && !/[\s\n]/gi.test(plainText[triggerIndex - 1]))
     ) {
       return;
     }
