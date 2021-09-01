@@ -1,0 +1,86 @@
+version: 2
+
+defaults: &defaults
+  working_directory: ~/repo
+  docker:
+    - image: venncity/circleci
+
+jobs:
+  checkout:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore npm package cache
+          keys:
+            - npm-dependencies-{{ checksum "package-lock.json" }}
+      - run:
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/repo/.npmrc
+      - run:
+          name: npm install
+          command: npm install
+      - save_cache:
+          paths:
+            - node_modules
+          key: npm-dependencies-{{ checksum "package-lock.json" }}
+      - persist_to_workspace:
+          root: ~/repo
+          paths: .
+  test:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Run tests
+          command: npm test
+
+  bump-version:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Running npm version patch and push back to git
+          command: |
+            git config credential.helper 'cache --timeout=120'
+            git config user.email "<email>"
+            git config user.name "Deployment Bot"
+            git config --global push.default simple
+            git add package.json
+            # Push quietly to prevent showing the token in log
+            npm version patch  -m "Upgrade to %s [ci skip]" && git push -q https://${DOCS_GITHUB_TOKEN}@github.com/${CIRCLE_REPOSITORY_URL/git@github.com:}
+  deploy-npm:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Publish package
+          command: npm publish
+workflows:
+  version: 2
+  test-deploy:
+    jobs:
+      - checkout:
+          context: venn-global
+      - test:
+          context: venn-global
+          requires:
+            - checkout
+      - bump-version:
+          context: venn-global
+          filters:
+            branches:
+              only: master
+          requires:
+            - test
+      - deploy-npm:
+          context: venn-global
+          requires:
+            - bump-version
+          filters:
+            branches:
+              only:
+                - master
