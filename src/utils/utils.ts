@@ -1,5 +1,6 @@
 import { diffChars } from 'diff';
 import { StyleProp, TextStyle } from 'react-native';
+import { capitalize } from 'lodash';
 // @ts-ignore the lib do not have TS declarations yet
 import matchAll from 'string.prototype.matchall';
 import {
@@ -25,7 +26,15 @@ const mentionRegEx = /((.)\[([^[]*)]\(([^(^)]*)\))/gi;
 
 const defaultMentionTextStyle: StyleProp<TextStyle> = {fontWeight: 'bold', color: 'blue'};
 
-const defaultPlainStringGenerator = ({trigger}: MentionPartType, {name}: MentionData) => `${trigger}${name}`;
+const defaultPlainStringGenerator = ({ trigger }: { trigger?: string | undefined }, { name }: { name?: string }) : string => {
+  if (!trigger || !name) {
+    return '';
+  }
+  const splitName = name?.split(' ') || [];
+  const firstName = capitalize(splitName[0]);
+  const lastName = splitName[1] ? ` ${capitalize(splitName[1][0])}.` : '';
+  return `${firstName}${lastName}`;
+};
 
 const isMentionPartType = (partType: PartType): partType is MentionPartType => {
   return (partType as MentionPartType).trigger != null;
