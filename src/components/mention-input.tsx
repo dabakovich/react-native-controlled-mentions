@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 
-import { MentionInputProps, MentionPartType, Suggestion } from '../types';
+import { MentionInputProps,ExtendeTextInput, MentionPartType, Suggestion } from '../types';
 import {
   defaultMentionTextStyle,
   generateValueFromPartsAndChangedText,
@@ -21,9 +21,8 @@ const MentionInput: FC<MentionInputProps> = (
   {
     value,
     onChange,
-
     partTypes = [],
-
+    externalRender=false,
     inputRef: propInputRef,
 
     containerStyle,
@@ -103,17 +102,6 @@ const MentionInput: FC<MentionInputProps> = (
     // textInput.current?.setNativeProps({selection: {start: newCursorPosition, end: newCursorPosition}});
   };
 
-  const handleTextInputRef = (ref: TextInput) => {
-    textInput.current = ref as TextInput;
-
-    if (propInputRef) {
-      if (typeof propInputRef === 'function') {
-        propInputRef(ref);
-      } else {
-        (propInputRef as MutableRefObject<TextInput>).current = ref as TextInput;
-      }
-    }
-  };
 
   const renderMentionSuggestions = (mentionType: MentionPartType) => (
     <React.Fragment key={mentionType.trigger}>
@@ -124,9 +112,34 @@ const MentionInput: FC<MentionInputProps> = (
     </React.Fragment>
   );
 
+
+
+  const renderSuggestions = () => {
+    return (partTypes
+    .filter(one => (
+      isMentionPartType(one)
+      && one.renderSuggestions != null
+    )) as MentionPartType[])
+    .map(renderMentionSuggestions)
+  }
+
+
+  const handleTextInputRef = (ref: TextInput) => {
+    textInput.current = ref as TextInput;
+
+    if (propInputRef) {
+      if (typeof propInputRef === 'function') {
+        propInputRef({...ref, renderSuggestions} as ExtendeTextInput);
+      } else {
+        (propInputRef as MutableRefObject<TextInput>).current = {...(ref as TextInput), renderSuggestions} as ExtendeTextInput;
+      }
+    }
+  };
+
+
   return (
     <View style={containerStyle}>
-      {(partTypes
+      {!externalRender && (partTypes
         .filter(one => (
           isMentionPartType(one)
           && one.renderSuggestions != null
@@ -159,7 +172,7 @@ const MentionInput: FC<MentionInputProps> = (
         </Text>
       </TextInput>
 
-      {(partTypes
+      {!externalRender && (partTypes
         .filter(one => (
           isMentionPartType(one)
           && one.renderSuggestions != null

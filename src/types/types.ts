@@ -91,14 +91,16 @@ type Part = {
   data?: MentionData;
 };
 
+
+export type ExtendeTextInput = TextInput & {renderSuggestions:() => ReactNode}
+
 type MentionInputProps = Omit<TextInputProps, 'onChange'> & {
   value: string;
   onChange: (value: string) => any;
 
   partTypes?: PartType[];
-
-  inputRef?: Ref<TextInput>;
-
+  externalRender?:boolean,
+  inputRef?: Ref<ExtendeTextInput>;
   containerStyle?: StyleProp<ViewStyle>;
 };
 
