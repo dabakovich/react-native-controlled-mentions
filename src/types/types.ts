@@ -91,14 +91,14 @@ type Part = {
   data?: MentionData;
 };
 
+
+
 type MentionInputProps = Omit<TextInputProps, 'onChange'> & {
   value: string;
   onChange: (value: string) => any;
-
   partTypes?: PartType[];
-
   inputRef?: Ref<TextInput>;
-
+  children: (s:{inputMounted:ReactNode,suggestionsMounted:Array<ReactNode>|ReactNode}) => JSX.Element,
   containerStyle?: StyleProp<ViewStyle>;
 };
 
