@@ -1,4 +1,4 @@
-import React, { FC, MutableRefObject, useMemo, useRef, useState } from 'react';
+import React, { FC, MutableRefObject, PropsWithChildren, useMemo, useRef, useState } from 'react';
 import {
   NativeSyntheticEvent,
   Text,
@@ -22,13 +22,10 @@ const MentionInput: FC<MentionInputProps> = (
     value,
     onChange,
     partTypes = [],
-    externalRender=false,
     inputRef: propInputRef,
-
     containerStyle,
-
     onSelectionChange,
-
+    children,
     ...textInputProps
   },
 ) => {
@@ -137,51 +134,38 @@ const MentionInput: FC<MentionInputProps> = (
   };
 
 
-  return (
-    <View style={containerStyle}>
-      {!externalRender && (partTypes
-        .filter(one => (
-          isMentionPartType(one)
-          && one.renderSuggestions != null
-          && !one.isBottomMentionSuggestionsRender
-        )) as MentionPartType[])
-        .map(renderMentionSuggestions)
-      }
+  const suggestionsMounted = (partTypes
+    .filter(one => (
+      isMentionPartType(one)
+      && one.renderSuggestions != null
+    )) as MentionPartType[])
+    .map(renderMentionSuggestions)
+  
+  const inputMounted = (<TextInput
+  multiline
 
-      <TextInput
-        multiline
+  {...textInputProps}
 
-        {...textInputProps}
+  ref={handleTextInputRef}
 
-        ref={handleTextInputRef}
-
-        onChangeText={onChangeInput}
-        onSelectionChange={handleSelectionChange}
+  onChangeText={onChangeInput}
+  onSelectionChange={handleSelectionChange}
+>
+  <Text>
+    {parts.map(({text, partType, data}, index) => partType ? (
+      <Text
+        key={`${index}-${data?.trigger ?? 'pattern'}`}
+        style={partType.textStyle ?? defaultMentionTextStyle}
       >
-        <Text>
-          {parts.map(({text, partType, data}, index) => partType ? (
-            <Text
-              key={`${index}-${data?.trigger ?? 'pattern'}`}
-              style={partType.textStyle ?? defaultMentionTextStyle}
-            >
-              {text}
-            </Text>
-          ) : (
-            <Text key={index}>{text}</Text>
-          ))}
-        </Text>
-      </TextInput>
+        {text}
+      </Text>
+    ) : (
+      <Text key={index}>{text}</Text>
+    ))}
+  </Text>
+</TextInput>)
 
-      {!externalRender && (partTypes
-        .filter(one => (
-          isMentionPartType(one)
-          && one.renderSuggestions != null
-          && one.isBottomMentionSuggestionsRender
-        )) as MentionPartType[])
-        .map(renderMentionSuggestions)
-      }
-    </View>
-  );
+  return children && children({inputMounted,suggestionsMounted})
 };
 
 export { MentionInput };
