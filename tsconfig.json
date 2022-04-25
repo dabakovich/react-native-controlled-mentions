@@ -4,6 +4,8 @@
 
     "module": "commonjs",
 
+    "types": ["react", "jest"],
+
     "lib": [
       "es7"
     ],
@@ -23,6 +25,14 @@
     "typeRoots": [
       "node_modules/@types"
     ],
+
+    "baseUrl": "./src",
+
+    "paths": {
+      "@mention-hooks": ["./hooks"],
+      "@mention-types": ["./types"],
+      "@mention-utils": ["./utils"]
+    },
 
     "jsx": "react"
   },
