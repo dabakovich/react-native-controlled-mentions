@@ -1,6 +1,5 @@
 import type { Change } from 'diff';
-import type { ReactNode, Ref } from 'react';
-import type { StyleProp, TextInput, TextInputProps, TextStyle, ViewStyle } from 'react-native';
+import type { StyleProp, TextInputProps, TextStyle } from 'react-native';
 
 type Suggestion = {
   id: string;
@@ -45,26 +44,21 @@ type Position = {
   end: number;
 };
 
-type MentionSuggestionsProps = {
-  keyword: string | undefined;
-  onSuggestionPress: (suggestion: Suggestion) => void;
+type SuggestionsProvidedProps = {
+  keyword?: string;
+  onSelect: (suggestion: Suggestion) => void;
 };
 
 type MentionPartType = {
+  // ToDo — add support for non-single triggers (#38, #51)
   // single trigger character eg '@' or '#'
   trigger: string;
-
-  // Function for render suggestions
-  renderSuggestions?: (props: MentionSuggestionsProps) => ReactNode;
 
   // How much spaces are allowed for mention keyword
   allowedSpacesCount?: number;
 
   // Should we add a space after selected mentions if the mention is at the end of row
   isInsertSpaceAfterMention?: boolean;
-
-  // Should we render either at the top or bottom of the input
-  isBottomMentionSuggestionsRender?: boolean;
 
   // Custom mention styles in text input
   textStyle?: StyleProp<TextStyle>;
@@ -91,15 +85,21 @@ type Part = {
   data?: MentionData;
 };
 
+type MentionState = { plainText: string; parts: Part[] };
+
+type Mentions = {
+  [trigger: string]: SuggestionsProvidedProps;
+};
+
 type MentionInputProps = Omit<TextInputProps, 'onChange'> & {
   value: string;
-  onChange: (value: string) => any;
+  onChange: (value: string) => void;
 
+  // ToDo: think about name
+  onMentionsChange: (mentions: Mentions) => void;
+
+  // IMPORTANT! We need to memoize this prop externally
   partTypes?: PartType[];
-
-  inputRef?: Ref<TextInput>;
-
-  containerStyle?: StyleProp<ViewStyle>;
 };
 
 export type {
@@ -109,9 +109,11 @@ export type {
   RegexMatchResult,
   Position,
   Part,
-  MentionSuggestionsProps,
+  SuggestionsProvidedProps,
   MentionPartType,
   PatternPartType,
   PartType,
+  MentionState,
+  Mentions,
   MentionInputProps,
 };

@@ -8,7 +8,8 @@ Pretty simple and fully controlled mention input. It can:
 * Completely typed (written on TypeScript)
 * No need for native libraries
 
-In addition, you can add custom styling for a regex pattern (like URLs) using the optimized recursive function for parsing the value.
+In addition, you can add custom styling for a regex pattern (like URLs) using the optimized recursive function for
+parsing the value.
 
 Demo
 -
@@ -36,35 +37,64 @@ Import the [MentionInput](#mentioninput-component-props) component:
 import { MentionInput } from 'react-native-controlled-mentions'
 ```
 
-Replace your [TextInput](https://reactnative.dev/docs/textinput) by [MentionInput](#mentioninput-component-props) component and add the `partTypes` property where you can define what mention or pattern types you want to support. It takes an array of [PartType](#parttype-type) objects.
+Replace your [TextInput](https://reactnative.dev/docs/textinput) by [MentionInput](#mentioninput-component-props)
+component and
 
 ```tsx
-<MentionInput
-  value={value}
-  onChange={setValue}
+const Mentions = () => {
+  const [value, setValue] = useState('');
 
-  partTypes={[
-    {
-      trigger: '@', // Should be a single character like '@' or '#'
-      renderSuggestions,
-      textStyle: {fontWeight: 'bold', color: 'blue'}, // The mention style in the input
-    },
-  ]}
-/>
+  return (
+    <MentionInput
+      value={value}
+      onChange={setValue}
+    />
+  );
+};
 ```
 
-Define your `renderSuggestions` functional component that receive [MentionSuggestionsProps](#mentionsuggestionsprops-type-props):
+Add the `partTypes` property where you can define what mention or pattern types you want to support. It
+takes an array of [PartType](#parttype-type) objects.
+> Important. Put the constant out of functional component body, or memoize it using `useMemo` to avoid unnecessary
+> re-renders.
+
+```typescript jsx
+const partTypes: PartType[] = [
+  {
+    trigger: '@', // Should be a single character like '@' or '#'
+    textStyle: { fontWeight: 'bold', color: 'blue' }, // The mention style in the input
+  }
+]
+
+const Mentions = () => {
+  const [value, setValue] = useState('');
+
+  return (
+    <View>
+      <MentionInput
+        value={value}
+        onChange={setValue}
+
+        partTypes={partTypes}
+      />
+    </View>
+  );
+};
+```
+
+Define your `Suggestions` functional component that
+receive [SuggestionsProvidedProps](#suggestionsprovidedprops-type-props):
 
 ```tsx
 const suggestions = [
-  {id: '1', name: 'David Tabaka'},
-  {id: '2', name: 'Mary'},
-  {id: '3', name: 'Tony'},
-  {id: '4', name: 'Mike'},
-  {id: '5', name: 'Grey'},
+  { id: '1', name: 'David Tabaka' },
+  { id: '2', name: 'Mary' },
+  { id: '3', name: 'Tony' },
+  { id: '4', name: 'Mike' },
+  { id: '5', name: 'Grey' },
 ];
 
-const renderSuggestions: FC<MentionSuggestionsProps> = ({keyword, onSuggestionPress}) => {
+const Suggestions: FC<SuggestionsProvidedProps> = ({ keyword, onSelect }) => {
   if (keyword == null) {
     return null;
   }
@@ -76,14 +106,44 @@ const renderSuggestions: FC<MentionSuggestionsProps> = ({keyword, onSuggestionPr
         .map(one => (
           <Pressable
             key={one.id}
-            onPress={() => onSuggestionPress(one)}
+            onPress={() => onSelect(one)}
 
-            style={{padding: 12}}
+            style={{ padding: 12 }}
           >
             <Text>{one.name}</Text>
           </Pressable>
         ))
       }
+    </View>
+  );
+};
+```
+
+Add state that stores your mention keywords Render your suggestions wherever you want.
+
+```typescript jsx
+const partTypes: PartType[] = [
+  {
+    trigger: '@', // Should be a single character like '@' or '#'
+    textStyle: { fontWeight: 'bold', color: 'blue' }, // The mention style in the input
+  }
+]
+
+const Mentions = () => {
+  const [value, setValue] = useState('');
+  const [mentions, setMentions] = useState<Mentions>({});
+
+  return (
+    <View>
+      <Suggestions suggestions={users} {...mentions?.['@']} />
+      
+      <MentionInput
+        value={value}
+        onChange={setValue}
+        onMentionsChange={setMentions}
+
+        partTypes={partTypes}
+      />
     </View>
   );
 };
@@ -98,38 +158,36 @@ API
 
 ### `MentionInput` component props
 
-| **Property name**     | **Description**                                                	    | **Type**                                  | **Required** 	| **Default** 	|
+| **Property name**     | **Description**                                                        | **Type**                                  | **Required**    | **Default**    |
 |-------------------	|--------------------------------------------------------------------   |----------------------------------------   |------------   |------------   |
-| `value`             	| The same as in `TextInput`                                            | string                 	                | true     	    |               |
-| `onChange`          	| The same as in `TextInput`                                            | (value: string) => void 	                | true     	    |               |
-| `partTypes`      	    | Declare what part types you want to support (mentions, hashtags, urls)| [PartType](#parttype-type)[]              | false    	    | []            |
-| `inputRef`          	| Reference to the `TextInput` component inside `MentionInput`	        | Ref\<TextInput>          	                | false    	    |               |
-| `containerStyle`    	| Style to the `MentionInput`'s root component                 	        | StyleProp\<TextStyle>                     | false    	    |               |
-| ...textInputProps 	| Other text input props                                     	        | TextInputProps         	                | false    	    |               |
+| `value`                | The same as in `TextInput`                                            | string                                    | true            |               |
+| `onChange`            | The same as in `TextInput`                                            | (value: string) => void                   | true            |               |
+| `partTypes`            | Declare what part types you want to support (mentions, hashtags, urls)| [PartType](#parttype-type)[]              | false            | []            |
+| `ref`                 | Reference to the `TextInput` component inside `MentionInput`            | Ref\<TextInput>                           | false            |               |
+| ...textInputProps    | Other text input props                                                | TextInputProps                            | false            |               |
 
 ### `PartType` type
+
 [MentionPartType](#mentionparttype-type-props) | [PatternPartType](#patternparttype-type-props)
 
 ### `MentionPartType` type props
 
-| **Property name**                     | **Description**                                                                       | **Type**                                                                              | **Required** 	| **Default** 	|
-|------------------------------------	|-----------------------------------------------------------------------------------	|-----------------------------------------------------------------------------------	|------------   |-----------    |
-| `trigger`                   	        | Character that will trigger current mention type                                     	| string                                        	                                    | true     	    |               |
-| `renderSuggestions`         	        | Renderer for mention suggestions component                                           	| (props: [MentionSuggestionsProps](#mentionsuggestionsprops-type-props)) => ReactNode 	| false    	    |               |
-| `allowedSpacesCount`         	        | How much spaces are allowed for mention keyword                                       | number                                                                             	| false    	    | 1             |
-| `isInsertSpaceAfterMention` 	        | Should we add a space after selected mentions if the mention is at the end of row 	| boolean                                       	                                    | false    	    | false         |
-| `isBottomMentionSuggestionsRender` 	| Should we render either at the top or bottom of the input                          	| boolean                                       	                                    | false    	    |               |
-| `textStyle`                 	        | Text style for mentions in `TextInput`                                                | StyleProp\<TextStyle>                         	                                    | false    	    |               |
-| `getPlainString`            	        | Function for generating custom mention text in text input                         	| (mention: [MentionData](#mentiondata-type-props)) => string              	            | false    	    |               |
+| **Property name**                     | **Description**                                                                   | **Type**                                                                              | **Required**    | **Default**    |
+|------------------------------------	|-----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------	|------------   |-----------    |
+| `trigger`                            | Character that will trigger current mention type                                  | string                                                                                | true            |               |
+| `allowedSpacesCount`                    | How much spaces are allowed for mention keyword                                   | number                                                                                | false            | 1             |
+| `isInsertSpaceAfterMention`            | Should we add a space after selected mentions if the mention is at the end of row | boolean                                                                            | false            | false         |
+| `textStyle`                            | Text style for mentions in `TextInput`                                            | StyleProp\<TextStyle>                                                                | false            |               |
+| `getPlainString`                        | Function for generating custom mention text in text input                         | (mention: [MentionData](#mentiondata-type-props)) => string                           | false            |               |
 
 ### `PatternPartType` type props
 
-| **Property name**             | **Description**                                                                       | **Type**                                                                              | **Required** 	| **Default** 	|
+| **Property name**             | **Description**                                                                       | **Type**                                                                              | **Required**    | **Default**    |
 |---------------------------	|-----------------------------------------------------------------------------------	|-----------------------------------------------------------------------------------	|------------   |-----------    |
-| `pattern`                   	| RegExp for parsing a pattern, should include global flag                              | RegExp                                        	                                    | true     	    |               |
-| `textStyle`                 	| Text style for pattern in `TextInput`                                                 | StyleProp\<TextStyle>                         	                                    | false    	    |               |
+| `pattern`                    | RegExp for parsing a pattern, should include global flag                              | RegExp                                                                                | true            |               |
+| `textStyle`                    | Text style for pattern in `TextInput`                                                 | StyleProp\<TextStyle>                                                                | false            |               |
 
-### `MentionSuggestionsProps` type props
+### `SuggestionsProvidedProps` type props
 
 `keyword: string | undefined`
 
@@ -147,7 +205,8 @@ Examples where @name is just plain text yet, not mention and `|` is cursor posit
 'abc @|name dfg' - keyword is against ''
 'abc @name |dfg' - keyword is against undefined
 ```
-`onSuggestionPress: (suggestion: Suggestion) => void`
+
+`onSelect: (suggestion: Suggestion) => void`
 
 You should call that callback when user selects any suggestion.
 
@@ -163,7 +222,8 @@ Name that will be shown in `MentionInput` when user will select the suggestion.
 
 ### `MentionData` type props
 
-For example, we have that mention value `@[David Tabaka](123)`. Then after parsing that string by `mentionRegEx` we will get next properties:
+For example, we have that mention value `@[David Tabaka](123)`. Then after parsing that string by `mentionRegEx` we will
+get next properties:
 
 `original: string`
 
@@ -187,7 +247,6 @@ The extracted id - `123`
 /(?<original>(?<trigger>.)\[(?<name>([^[]*))]\((?<id>([\d\w-]*))\))/gi;
 ```
 
-
 Parsing `MentionInput`'s value
 -
 
@@ -206,15 +265,17 @@ import { replaceMentionValues } from 'react-native-controlled-mentions';
 
 const value = 'Hello @[David Tabaka](5)! How are you?';
 
-console.log(replaceMentionValues(value, ({id}) => `@${id}`)); // Hello @5! How are you?
-console.log(replaceMentionValues(value, ({name}) => `@${name}`)); // Hello @David Tabaka! How are you?
+console.log(replaceMentionValues(value, ({ id }) => `@${id}`)); // Hello @5! How are you?
+console.log(replaceMentionValues(value, ({ name }) => `@${name}`)); // Hello @David Tabaka! How are you?
 ```
 
 Rendering `MentionInput`'s value
 -
-If you want to parse and render your value somewhere else you can use `parseValue` tool which gives you array of parts and then use your own part renderer to resolve this issue.
+If you want to parse and render your value somewhere else you can use `parseValue` tool which gives you array of parts
+and then use your own part renderer to resolve this issue.
 
 Here is an example:
+
 ```tsx
 import {
   Part,
@@ -225,7 +286,7 @@ import {
 
 /**
  * Part renderer
- * 
+ *
  * @param part
  * @param index
  */
@@ -264,7 +325,7 @@ const renderPart = (
 
 /**
  * Value renderer. Parsing value to parts array and then mapping the array using 'renderPart'
- * 
+ *
  * @param value - value from MentionInput
  * @param partTypes - the part types array that you providing to MentionInput
  */
@@ -272,7 +333,7 @@ const renderValue: FC = (
   value: string,
   partTypes: PartType[],
 ) => {
-  const {parts} = parseValue(value, partTypes);
+  const { parts } = parseValue(value, partTypes);
 
   return <Text>{parts.map(renderPart)}</Text>;
 };
@@ -297,4 +358,5 @@ Support Me
 <a href="https://www.buymeacoffee.com/dabakovich" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
 
 [npm-image]: https://img.shields.io/npm/v/react-native-controlled-mentions
+
 [npm-url]: https://npmjs.org/package/react-native-controlled-mentions

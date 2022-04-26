@@ -1,174 +1,124 @@
-import React, { FC, MutableRefObject, useMemo, useRef, useState } from 'react';
-import {
-  NativeSyntheticEvent,
-  Text,
-  TextInput,
-  TextInputSelectionChangeEventData,
-  View,
-} from 'react-native';
+import React, { MutableRefObject, useEffect, useMemo, useRef, useState } from "react";
+import { NativeSyntheticEvent, Text, TextInput, TextInputSelectionChangeEventData } from "react-native";
 
-import { MentionInputProps, MentionPartType, Suggestion } from '../types';
+import { MentionInputProps, MentionState } from "@mention-types";
 import {
   defaultMentionTextStyle,
   generateValueFromPartsAndChangedText,
-  generateValueWithAddedSuggestion,
   getMentionPartSuggestionKeywords,
-  isMentionPartType,
-  parseValue,
-} from '../utils';
+  parseValue
+} from "@mention-utils";
 
-const MentionInput: FC<MentionInputProps> = (
-  {
-    value,
-    onChange,
+// ToDo — move to the components/mention-input folder
+const MentionInput = React.forwardRef<TextInput, MentionInputProps>(
+  (
+    {
+      value,
+      onChange,
 
-    partTypes = [],
+      onMentionsChange,
 
-    inputRef: propInputRef,
+      partTypes = [],
 
-    containerStyle,
+      onSelectionChange,
 
-    onSelectionChange,
+      ...textInputProps
+    },
+    externalRef,
+  ) => {
+    const textInput = useRef<TextInput | null>(null);
 
-    ...textInputProps
-  },
-) => {
-  const textInput = useRef<TextInput | null>(null);
+    const prevMentionState = useRef<MentionState>({ parts: [], plainText: '' });
 
-  const [selection, setSelection] = useState({start: 0, end: 0});
+    const mentionState = useMemo(() => {
+      const newMentionState = parseValue(value, partTypes);
 
-  const {
-    plainText,
-    parts,
-  } = useMemo(() => parseValue(value, partTypes), [value, partTypes]);
+      // Store previous mentionValue to generate complex mentionStateAndSelection later
+      prevMentionState.current = newMentionState;
 
-  const handleSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-    setSelection(event.nativeEvent.selection);
-
-    onSelectionChange && onSelectionChange(event);
-  };
-
-  /**
-   * Callback that trigger on TextInput text change
-   *
-   * @param changedText
-   */
-  const onChangeInput = (changedText: string) => {
-    onChange(generateValueFromPartsAndChangedText(parts, plainText, changedText));
-  };
-
-  /**
-   * We memoize the keyword to know should we show mention suggestions or not
-   */
-  const keywordByTrigger = useMemo(() => {
-    return getMentionPartSuggestionKeywords(
-      parts,
-      plainText,
-      selection,
-      partTypes,
-    );
-  }, [parts, plainText, selection, partTypes]);
-
-  /**
-   * Callback on mention suggestion press. We should:
-   * - Get updated value
-   * - Trigger onChange callback with new value
-   */
-  const onSuggestionPress = (mentionType: MentionPartType) => (suggestion: Suggestion) => {
-    const newValue = generateValueWithAddedSuggestion(
-      parts,
-      mentionType,
-      plainText,
-      selection,
-      suggestion,
-    );
-
-    if (!newValue) {
-      return;
-    }
-
-    onChange(newValue);
+      return newMentionState;
+    }, [value, partTypes]);
 
     /**
-     * Move cursor to the end of just added mention starting from trigger string and including:
-     * - Length of trigger string
-     * - Length of mention name
-     * - Length of space after mention (1)
+     * We are using this complex mentionState and selection state
+     * to avoid unnecessary re-renders on suggestions component.
      *
-     * Not working now due to the RN bug
+     * Fixes https://github.com/dabakovich/react-native-controlled-mentions/issues/55
      */
-    // const newCursorPosition = currentPart.position.start + triggerPartIndex + trigger.length +
-    // suggestion.name.length + 1;
+    const [mentionStateAndSelection, setMentionStateAndSelection] = useState({
+      mentionState,
+      selection: { start: 0, end: 0 },
+    });
 
-    // textInput.current?.setNativeProps({selection: {start: newCursorPosition, end: newCursorPosition}});
-  };
+    useEffect(() => {
+      const { mentionState, selection } = mentionStateAndSelection;
 
-  const handleTextInputRef = (ref: TextInput) => {
-    textInput.current = ref as TextInput;
+      onMentionsChange(
+        getMentionPartSuggestionKeywords(mentionState, selection, partTypes, onChange),
+      );
+    }, [mentionStateAndSelection, partTypes, onChange, onMentionsChange]);
 
-    if (propInputRef) {
-      if (typeof propInputRef === 'function') {
-        propInputRef(ref);
-      } else {
-        (propInputRef as MutableRefObject<TextInput>).current = ref as TextInput;
+    const handleTextInputRef = (ref: TextInput) => {
+      textInput.current = ref as TextInput;
+
+      if (externalRef) {
+        if (typeof externalRef === 'function') {
+          externalRef(ref);
+        } else {
+          (externalRef as MutableRefObject<TextInput>).current = ref as TextInput;
+        }
       }
-    }
-  };
+    };
 
-  const renderMentionSuggestions = (mentionType: MentionPartType) => (
-    <React.Fragment key={mentionType.trigger}>
-      {mentionType.renderSuggestions && mentionType.renderSuggestions({
-        keyword: keywordByTrigger[mentionType.trigger],
-        onSuggestionPress: onSuggestionPress(mentionType),
-      })}
-    </React.Fragment>
-  );
+    /**
+     * Callback that handles TextInput text change
+     *
+     * @param text
+     */
+    const handleTextChange = (text: string) => {
+      onChange(generateValueFromPartsAndChangedText(mentionState, text));
+    };
 
-  return (
-    <View style={containerStyle}>
-      {(partTypes
-        .filter(one => (
-          isMentionPartType(one)
-          && one.renderSuggestions != null
-          && !one.isBottomMentionSuggestionsRender
-        )) as MentionPartType[])
-        .map(renderMentionSuggestions)
-      }
+    /**
+     * Callback that handles TextInput selection change
+     *
+     * @param event
+     */
+    const handleSelectionChange = (
+      event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
+    ) => {
+      setMentionStateAndSelection({
+        mentionState: prevMentionState.current,
+        selection: event.nativeEvent.selection,
+      });
 
+      onSelectionChange && onSelectionChange(event);
+    };
+
+    return (
       <TextInput
-        multiline
-
         {...textInputProps}
-
         ref={handleTextInputRef}
-
-        onChangeText={onChangeInput}
+        onChangeText={handleTextChange}
         onSelectionChange={handleSelectionChange}
       >
         <Text>
-          {parts.map(({text, partType, data}, index) => partType ? (
-            <Text
-              key={`${index}-${data?.trigger ?? 'pattern'}`}
-              style={partType.textStyle ?? defaultMentionTextStyle}
-            >
-              {text}
-            </Text>
-          ) : (
-            <Text key={index}>{text}</Text>
-          ))}
+          {mentionState.parts.map(({ text, partType, data }, index) =>
+            partType ? (
+              <Text
+                key={`${index}-${data?.trigger ?? 'pattern'}`}
+                style={partType.textStyle ?? defaultMentionTextStyle}
+              >
+                {text}
+              </Text>
+            ) : (
+              <Text key={index}>{text}</Text>
+            ),
+          )}
         </Text>
       </TextInput>
-
-      {(partTypes
-        .filter(one => (
-          isMentionPartType(one)
-          && one.renderSuggestions != null
-          && one.isBottomMentionSuggestionsRender
-        )) as MentionPartType[])
-        .map(renderMentionSuggestions)
-      }
-    </View>
-  );
-};
+    );
+  },
+);
 
 export { MentionInput };

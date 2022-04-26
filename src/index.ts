@@ -1,7 +1,7 @@
 export * from './components';
 
 export type {
-  Suggestion, Part, MentionSuggestionsProps, PartType,
+  Suggestion, Part, SuggestionsProvidedProps, PartType, Mentions,
 } from './types';
 
 export {
