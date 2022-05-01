@@ -1,19 +1,21 @@
-import { diffChars } from "diff";
-import { StyleProp, TextStyle } from "react-native";
+import { diffChars } from 'diff';
+import { StyleProp, TextStyle } from 'react-native';
 // @ts-ignore the lib do not have TS declarations yet
-import matchAll from "string.prototype.matchall";
+import matchAll from 'string.prototype.matchall';
 import {
   CharactersDiffChange,
-  MentionData,
-  MentionPartType,
-  Mentions,
+  TriggerData,
   MentionState,
   Part,
   PartType,
+  PatternsConfig,
   Position,
   RegexMatchResult,
-  Suggestion
-} from "../types";
+  Suggestion,
+  TriggerPartType,
+  Triggers,
+  TriggersConfig,
+} from '../types';
 
 /**
  * RegEx grouped results. Example - "@[Full Name](123abc)"
@@ -25,13 +27,16 @@ import {
  */
 const mentionRegEx = /((.)\[([^[]*)]\(([^(^)]*)\))/gi;
 
-const defaultMentionTextStyle: StyleProp<TextStyle> = { fontWeight: 'bold', color: 'blue' };
+const defaultMentionTextStyle: StyleProp<TextStyle> = {
+  fontWeight: 'bold',
+  color: 'blue',
+};
 
-const defaultPlainStringGenerator = ({ trigger }: MentionPartType, { name }: MentionData) =>
+const defaultPlainStringGenerator = ({ trigger }: TriggerPartType, { name }: TriggerData) =>
   `${trigger}${name}`;
 
-const isMentionPartType = (partType: PartType): partType is MentionPartType => {
-  return (partType as MentionPartType).trigger != null;
+const isTriggerPartType = (partType: PartType): partType is TriggerPartType => {
+  return (partType as TriggerPartType).trigger != null;
 };
 
 const getPartIndexByCursor = (parts: Part[], cursor: number, isIncludeEnd?: boolean) => {
@@ -40,6 +45,34 @@ const getPartIndexByCursor = (parts: Part[], cursor: number, isIncludeEnd?: bool
       ? cursor <= one.position.end
       : cursor < one.position.end,
   );
+};
+
+/**
+ * Helper that returns typed array of object's keys
+ *
+ * @param obj
+ */
+const getTypedKeys = <T extends object>(obj: T) => Object.keys(obj) as (keyof typeof obj)[];
+
+/**
+ * Combines object configs into array
+ *
+ * @param triggersConfig
+ * @param patternsConfig
+ */
+const getConfigsArray = <TriggerName extends string>(
+  triggersConfig: TriggersConfig<TriggerName>,
+  patternsConfig: PatternsConfig,
+) => {
+  const triggersArray = triggersConfig
+    ? getTypedKeys(triggersConfig).map((trigger) => triggersConfig[trigger])
+    : [];
+
+  const patternsArray = patternsConfig
+    ? getTypedKeys(patternsConfig).map((pattern) => patternsConfig[pattern])
+    : [];
+
+  return [...triggersArray, ...patternsArray];
 };
 
 /**
@@ -118,20 +151,22 @@ const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] 
  *
  * // ToDo — refactor to object params
  */
-const getMentionPartSuggestionKeywords = (
+const getTriggerPartSuggestionKeywords = <TriggerName extends string>(
   mentionState: MentionState,
   selection: Position,
-  partTypes: PartType[],
-  onChange: (newValue: string) => void,
+  triggersConfig: TriggersConfig<TriggerName>,
+  onChange: (newValue: string) => void = () => {},
 ) => {
   const { parts, plainText } = mentionState;
 
-  const keywordByTrigger: Mentions = {};
+  const keywordByTrigger: Partial<Triggers<keyof typeof triggersConfig>> = {};
 
-  partTypes.filter(isMentionPartType).forEach((partType) => {
-    const { trigger, allowedSpacesCount = 1 } = partType;
+  getTypedKeys(triggersConfig).forEach((triggerName) => {
+    const config = triggersConfig[triggerName];
 
-    keywordByTrigger[trigger] = {
+    const { trigger, allowedSpacesCount = 1 } = config;
+
+    keywordByTrigger[triggerName] = {
       keyword: undefined,
 
       /**
@@ -145,7 +180,7 @@ const getMentionPartSuggestionKeywords = (
         const newValue = generateValueWithAddedSuggestion(
           mentionState,
           selection,
-          partType,
+          config,
           suggestion,
         );
 
@@ -220,14 +255,14 @@ const getMentionPartSuggestionKeywords = (
       }
     }
 
-    keywordByTrigger[trigger].keyword = plainText.substring(triggerIndex + 1, selection.end);
+    keywordByTrigger[triggerName]!.keyword = plainText.substring(triggerIndex + 1, selection.end);
   });
 
-  return keywordByTrigger;
+  return keywordByTrigger as Triggers<keyof typeof triggersConfig>;
 };
 
 /**
- * Generates new value when we changing text.
+ * Generates new value when we are changing text.
  *
  * @param mentionValue
  * @param changedText changed plain text
@@ -294,13 +329,13 @@ const generateValueFromPartsAndChangedText = (mentionValue: MentionState, change
  *
  * @param mentionState - current mention state with parts and plainText
  * @param selection - current selection
- * @param mentionType - actually the mention type
+ * @param triggerPartType - actually the mention type
  * @param suggestion - suggestion that should be added
  */
 const generateValueWithAddedSuggestion = (
   mentionState: MentionState,
   selection: Position,
-  mentionType: MentionPartType,
+  triggerPartType: TriggerPartType,
   suggestion: Suggestion,
 ): string | undefined => {
   const { parts, plainText } = mentionState;
@@ -315,7 +350,7 @@ const generateValueWithAddedSuggestion = (
   }
 
   const triggerPartIndex = currentPart.text.lastIndexOf(
-    mentionType.trigger,
+    triggerPartType.trigger,
     selection.end - currentPart.position.start,
   );
 
@@ -325,7 +360,7 @@ const generateValueWithAddedSuggestion = (
   };
 
   const isInsertSpaceToNextPart =
-    mentionType.isInsertSpaceAfterMention &&
+    triggerPartType.isInsertSpaceAfterMention &&
     // Cursor is at the very end of parts or text row
     (plainText.length === selection.end ||
       parts[currentPartIndex]?.text.startsWith('\n', newMentionPartPosition.end));
@@ -335,9 +370,9 @@ const generateValueWithAddedSuggestion = (
 
     // Create part with string before mention
     generatePlainTextPart(currentPart.text.substring(0, newMentionPartPosition.start)),
-    generateMentionPart(mentionType, {
-      original: getMentionValue(mentionType.trigger, suggestion),
-      trigger: mentionType.trigger,
+    generateTriggerPart(triggerPartType, {
+      original: getMentionValue(triggerPartType.trigger, suggestion),
+      trigger: triggerPartType.trigger,
       ...suggestion,
     }),
 
@@ -369,18 +404,18 @@ const generatePlainTextPart = (text: string, positionOffset = 0): Part => ({
 /**
  * Method for generating part for mention
  *
- * @param mentionPartType
+ * @param triggerPartType
  * @param mention - mention data
  * @param positionOffset - position offset from the very beginning of text
  */
-const generateMentionPart = (
-  mentionPartType: MentionPartType,
-  mention: MentionData,
+const generateTriggerPart = (
+  triggerPartType: TriggerPartType,
+  mention: TriggerData,
   positionOffset = 0,
 ): Part => {
-  const text = mentionPartType.getPlainString
-    ? mentionPartType.getPlainString(mention)
-    : defaultPlainStringGenerator(mentionPartType, mention);
+  const text = triggerPartType.getPlainString
+    ? triggerPartType.getPlainString(mention)
+    : defaultPlainStringGenerator(triggerPartType, mention);
 
   return {
     text,
@@ -388,7 +423,7 @@ const generateMentionPart = (
       start: positionOffset,
       end: positionOffset + text.length,
     },
-    partType: mentionPartType,
+    partType: triggerPartType,
     data: mention,
   };
 };
@@ -428,7 +463,7 @@ const getMentionDataFromRegExMatchResult = ([
   trigger,
   name,
   id,
-]: RegexMatchResult): MentionData => ({
+]: RegexMatchResult): TriggerData => ({
   original,
   trigger,
   name,
@@ -457,7 +492,7 @@ const parseValue = (value: string, partTypes: PartType[], positionOffset = 0): M
   } else {
     const [partType, ...restPartTypes] = partTypes;
 
-    const regex = isMentionPartType(partType) ? mentionRegEx : partType.pattern;
+    const regex = isTriggerPartType(partType) ? mentionRegEx : partType.pattern;
 
     const matches: RegexMatchResult[] = Array.from(matchAll(value ?? '', regex));
 
@@ -479,7 +514,7 @@ const parseValue = (value: string, partTypes: PartType[], positionOffset = 0): M
     for (let i = 0; i < matches.length; i++) {
       const result = matches[i];
 
-      if (isMentionPartType(partType)) {
+      if (isTriggerPartType(partType)) {
         const mentionData = getMentionDataFromRegExMatchResult(result);
 
         // Matched pattern is a mention and the mention doesn't match current mention type
@@ -493,7 +528,7 @@ const parseValue = (value: string, partTypes: PartType[], positionOffset = 0): M
           parts = parts.concat(plainTextAndParts.parts);
           plainText += plainTextAndParts.plainText;
         } else {
-          const part = generateMentionPart(
+          const part = generateTriggerPart(
             partType,
             mentionData,
             positionOffset + plainText.length,
@@ -555,7 +590,7 @@ const getValueFromParts = (parts: Part[]) =>
  * @param value - value that is generated by MentionInput component
  * @param replacer - function that takes mention object as parameter and returns string
  */
-const replaceMentionValues = (value: string, replacer: (mention: MentionData) => string) =>
+const replaceMentionValues = (value: string, replacer: (mention: TriggerData) => string) =>
   value.replace(mentionRegEx, (fullMatch, original, trigger, name, id) =>
     replacer({
       original,
@@ -568,12 +603,14 @@ const replaceMentionValues = (value: string, replacer: (mention: MentionData) =>
 export {
   mentionRegEx,
   defaultMentionTextStyle,
-  isMentionPartType,
-  getMentionPartSuggestionKeywords,
+  isTriggerPartType,
+  getTypedKeys,
+  getConfigsArray,
+  getTriggerPartSuggestionKeywords,
   generateValueFromPartsAndChangedText,
   generateValueWithAddedSuggestion,
   generatePlainTextPart,
-  generateMentionPart,
+  generateTriggerPart,
   getMentionValue,
   parseValue,
   getValueFromParts,

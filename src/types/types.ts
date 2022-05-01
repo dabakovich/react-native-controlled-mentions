@@ -1,12 +1,12 @@
 import type { Change } from 'diff';
-import type { StyleProp, TextInputProps, TextStyle } from 'react-native';
+import type { StyleProp, TextStyle } from 'react-native';
 
 type Suggestion = {
   id: string;
   name: string;
 };
 
-type MentionData = {
+type TriggerData = {
   original: string;
   trigger: string;
   name: string;
@@ -34,8 +34,8 @@ type RegexMatchResult = string[] & {
   // Start position of matched text in whole string
   index: number;
 
-  // Group names (duplicates MentionData type)
-  groups: MentionData;
+  // Group names (duplicates TriggerData type)
+  groups: TriggerData;
 };
 
 // The same as text selection state
@@ -44,17 +44,23 @@ type Position = {
   end: number;
 };
 
+/**
+ * Props that we can provide to the suggestions components
+ */
 type SuggestionsProvidedProps = {
+  // current keyword for the trigger
   keyword?: string;
+  // callback for selecting a suggestion
   onSelect: (suggestion: Suggestion) => void;
 };
 
-type MentionPartType = {
+// ToDo — remove "=" here
+type TriggerPartType<TriggerName = string> = {
   // ToDo — add support for non-single triggers (#38, #51)
   // single trigger character eg '@' or '#'
   trigger: string;
 
-  // How much spaces are allowed for mention keyword
+  // How many spaces are allowed for mention keyword
   allowedSpacesCount?: number;
 
   // Should we add a space after selected mentions if the mention is at the end of row
@@ -64,7 +70,7 @@ type MentionPartType = {
   textStyle?: StyleProp<TextStyle>;
 
   // Plain string generator for mention
-  getPlainString?: (mention: MentionData) => string;
+  getPlainString?: (mention: TriggerData) => string;
 };
 
 type PatternPartType = {
@@ -74,7 +80,17 @@ type PatternPartType = {
   textStyle?: StyleProp<TextStyle>;
 };
 
-type PartType = MentionPartType | PatternPartType;
+type PartType = TriggerPartType | PatternPartType;
+
+/**
+ * Config of trigger part types
+ */
+type TriggersConfig<TriggerName extends string> = Record<TriggerName, TriggerPartType<TriggerName>>;
+
+/**
+ * Config of pattern part types that can highlight some matches in the `TextInput`
+ */
+type PatternsConfig = Record<string, PatternPartType>;
 
 type Part = {
   text: string;
@@ -82,38 +98,38 @@ type Part = {
 
   partType?: PartType;
 
-  data?: MentionData;
+  data?: TriggerData;
 };
 
 type MentionState = { plainText: string; parts: Part[] };
 
-type Mentions = {
-  [trigger: string]: SuggestionsProvidedProps;
-};
+type Triggers<TriggerName extends string> = Record<TriggerName, SuggestionsProvidedProps>;
 
-type MentionInputProps = Omit<TextInputProps, 'onChange'> & {
+type UseMentionsConfig<TriggerName extends string> = {
   value: string;
   onChange: (value: string) => void;
 
-  // ToDo: think about name
-  onMentionsChange: (mentions: Mentions) => void;
+  // IMPORTANT! We need to memoize this prop externally
+  triggersConfig?: TriggersConfig<TriggerName>;
 
   // IMPORTANT! We need to memoize this prop externally
-  partTypes?: PartType[];
+  patternsConfig?: PatternsConfig;
 };
 
 export type {
   Suggestion,
-  MentionData,
+  TriggerData,
   CharactersDiffChange,
   RegexMatchResult,
   Position,
   Part,
   SuggestionsProvidedProps,
-  MentionPartType,
+  TriggerPartType,
   PatternPartType,
+  TriggersConfig,
+  PatternsConfig,
   PartType,
   MentionState,
-  Mentions,
-  MentionInputProps,
+  Triggers,
+  UseMentionsConfig,
 };
