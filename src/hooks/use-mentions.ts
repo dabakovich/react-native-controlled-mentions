@@ -1,6 +1,7 @@
 import { Position, UseMentionsConfig } from '@mention-types';
 import {
   defaultMentionTextStyle,
+  emptyObject,
   generateValueFromPartsAndChangedText,
   getConfigsArray,
   getTriggerPartSuggestionKeywords,
@@ -8,8 +9,6 @@ import {
 } from '@mention-utils';
 import React, { useMemo, useState } from 'react';
 import { NativeSyntheticEvent, Text, TextInputSelectionChangeEventData } from 'react-native';
-
-const emptyObject: any = {};
 
 /**
  * Hook that stores mention context.

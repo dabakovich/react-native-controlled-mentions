@@ -1,5 +1,2 @@
 dist
 node_modules
-
-# Will add those folders in the future releases
-tests

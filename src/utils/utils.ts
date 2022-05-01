@@ -27,6 +27,9 @@ import {
  */
 const mentionRegEx = /((.)\[([^[]*)]\(([^(^)]*)\))/gi;
 
+// Empty object with static reference
+const emptyObject: any = {};
+
 const defaultMentionTextStyle: StyleProp<TextStyle> = {
   fontWeight: 'bold',
   color: 'blue',
@@ -61,8 +64,8 @@ const getTypedKeys = <T extends object>(obj: T) => Object.keys(obj) as (keyof ty
  * @param patternsConfig
  */
 const getConfigsArray = <TriggerName extends string>(
-  triggersConfig: TriggersConfig<TriggerName>,
-  patternsConfig: PatternsConfig,
+  triggersConfig?: TriggersConfig<TriggerName>,
+  patternsConfig?: PatternsConfig,
 ) => {
   const triggersArray = triggersConfig
     ? getTypedKeys(triggersConfig).map((trigger) => triggersConfig[trigger])
@@ -602,6 +605,7 @@ const replaceMentionValues = (value: string, replacer: (mention: TriggerData) =>
 
 export {
   mentionRegEx,
+  emptyObject,
   defaultMentionTextStyle,
   isTriggerPartType,
   getTypedKeys,
