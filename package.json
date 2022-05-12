@@ -48,8 +48,7 @@
     "@types/react": "17.0.44"
   },
   "dependencies": {
-    "diff": "5.0.0",
-    "string.prototype.matchall": "4.0.3"
+    "diff": "5.0.0"
   },
   "jest": {
     "preset": "ts-jest",

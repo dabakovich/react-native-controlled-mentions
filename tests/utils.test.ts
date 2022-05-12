@@ -15,16 +15,19 @@ import {
   parseValue,
   replaceMentionValues,
   getConfigsArray,
+  getTextLength,
+  getKeyword,
+  getPartsInterval,
 } from '../src/utils';
 
 const users = [
   {
     id: '1-a',
-    name: 'David Tabaka',
+    name: 'David🥳 Tabaka🥳',
   },
   {
     id: '2b',
-    name: 'Mary',
+    name: 'Mary🥳',
   },
   {
     id: '3',
@@ -50,7 +53,7 @@ const hashtagPartType: TriggerPartType = {
 
 const urlPatternPartType: PatternPartType = {
   pattern:
-    /(https?:\/\/|www\.)[-a-zA-Z0-9@:%._+~#=]{1,256}\.(xn--)?[a-z0-9-]{2,20}\b([-a-zA-Z0-9@:%_+\[\],.~#?&\/=]*[-a-zA-Z0-9@:%_+\]~#?&\/=])*/gi,
+    /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi,
 };
 
 const partTypes: PartType[] = [mentionPartType, hashtagPartType, urlPatternPartType];
@@ -81,23 +84,86 @@ test('generates plain text part', () => {
   });
 });
 
+test('finding correct trigger position', () => {
+  const cursor = 8;
+  const text = 'Hey☺️! @dav';
+
+  expect(getTextLength(text)).toEqual(11);
+
+  const keyword = getKeyword({
+    mentionState: {
+      parts: [
+        {
+          text,
+          position: {
+            start: 0,
+            end: 10,
+          },
+        },
+      ],
+      plainText: text,
+    },
+    selection: {
+      start: cursor,
+      end: cursor,
+    },
+    config: {
+      trigger: '@',
+      allowedSpacesCount: 0,
+    },
+  });
+
+  expect(keyword).toEqual('');
+});
+
+test('getting correct parts interval', () => {
+  const cursor = 0;
+  const text = 'Hello👨‍👩‍👧‍👦, how are you?';
+
+  const parts: Part[] = [
+    {
+      text,
+      position: {
+        start: 0,
+        end: getTextLength(text),
+      },
+    },
+  ];
+
+  const expectedText = 'Hello👨‍👩‍👧‍👦, how are you';
+  expect(getPartsInterval(parts, cursor, getTextLength(expectedText))).toEqual([
+    {
+      text: expectedText,
+      position: {
+        start: 0,
+        end: getTextLength(expectedText),
+      },
+    },
+  ]);
+});
+
 test('generates regex result part', () => {
-  const mentionValue = getMentionValue(mentionPartType.trigger, users[1]);
-  expect(mentionValue).toEqual(`@[Mary](2b)`);
+  const user = users[1];
+
+  const mentionValue = getMentionValue(mentionPartType.trigger, user);
+  expect(mentionValue).toEqual(`@[${user.name}](${user.id})`);
 
   const mentionData = {
     original: mentionValue,
     trigger: mentionPartType.trigger,
-    ...users[1],
+    ...user,
   };
   const mentionPart = generateTriggerPart(mentionPartType, mentionData);
+
+  const expectedPlainText = `@${user.name}`;
+
   expect(mentionPart).toEqual<Part>({
-    text: '@Mary',
+    text: expectedPlainText,
     partType: mentionPartType,
     data: mentionData,
     position: {
       start: 0,
-      end: '@Mary'.length,
+      end: getTextLength(expectedPlainText),
     },
   });
 });
@@ -128,19 +194,24 @@ test('generates correct parts length from value', () => {
 });
 
 test('generates correct parts', () => {
-  const mentionValue = '@[David](1:@)';
+  const user = users[1];
+
+  const mentionValue = `@[${user.name}](${user.id})`;
+
+  const expectingPlainText = `@${user.name}`;
+
   const expectedMentionPart = {
     partType: mentionPartType,
-    text: '@David',
+    text: expectingPlainText,
     data: {
-      id: '1:@',
-      name: 'David',
+      id: user.id,
+      name: user.name,
       trigger: '@',
-      original: '@[David](1:@)',
+      original: mentionValue,
     },
     position: {
       start: 0,
-      end: 6,
+      end: getTextLength(expectingPlainText),
     },
   };
 
@@ -155,8 +226,8 @@ test('generates correct parts', () => {
     {
       text: ' hey!',
       position: {
-        start: 6,
-        end: 11,
+        start: getTextLength(expectingPlainText),
+        end: getTextLength(expectingPlainText) + 5,
       },
     },
   ]);
@@ -170,9 +241,9 @@ test('generates value from parts and changed text', () => {
       parts,
       plainText,
     },
-    'Hey David!',
+    'Hey David!👨‍👩‍👧‍👦',
   );
-  expect(newValue).toEqual<string>('Hey David!');
+  expect(newValue).toEqual<string>('Hey David!👨‍👩‍👧‍👦');
 });
 
 const getExpectingResultForKeyword = (keyword?: string) => ({
