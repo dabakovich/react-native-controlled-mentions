@@ -11,6 +11,12 @@ export type {
   Triggers,
 } from './types';
 
-export { isTriggerPartType, getMentionValue, parseValue, replaceMentionValues } from './utils';
+export {
+  isTriggerPartType,
+  generateValueFromPartsAndChangedText,
+  getMentionValue,
+  parseValue,
+  replaceMentionValues,
+} from './utils';
 
 export { mentionRegEx } from './utils';

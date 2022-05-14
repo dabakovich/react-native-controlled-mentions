@@ -114,6 +114,8 @@ type UseMentionsConfig<TriggerName extends string> = {
 
   // IMPORTANT! We need to memoize this prop externally
   patternsConfig?: PatternsConfig;
+
+  onSelectionChange?: (selection: Position) => void;
 };
 
 export type {

@@ -24,6 +24,8 @@ const useMentions = <TriggerName extends string>({
 
   triggersConfig = emptyObject,
   patternsConfig = emptyObject,
+
+  onSelectionChange,
 }: UseMentionsConfig<TriggerName>) => {
   const [selection, setSelection] = useState<Position>({
     start: 0,
@@ -55,7 +57,10 @@ const useMentions = <TriggerName extends string>({
   const handleSelectionChange = (
     event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
   ) => {
-    setSelection(event.nativeEvent.selection);
+    const newSelection = event.nativeEvent.selection;
+
+    setSelection(newSelection);
+    onSelectionChange && onSelectionChange(newSelection);
   };
 
   /**
@@ -99,6 +104,8 @@ const useMentions = <TriggerName extends string>({
   return {
     triggers,
     textInputProps,
+
+    mentionState,
   };
 };
 

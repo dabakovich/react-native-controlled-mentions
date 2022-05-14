@@ -307,11 +307,11 @@ const getTriggerPartSuggestionKeywords = <TriggerName extends string>(
 /**
  * Generates new value when we are changing text.
  *
- * @param mentionValue
+ * @param mentionState
  * @param changedText changed plain text
  */
-const generateValueFromPartsAndChangedText = (mentionValue: MentionState, changedText: string) => {
-  const { parts, plainText } = mentionValue;
+const generateValueFromPartsAndChangedText = (mentionState: MentionState, changedText: string) => {
+  const { parts, plainText } = mentionState;
 
   const changes = diffChars(plainText, changedText) as CharactersDiffChange[];
 
