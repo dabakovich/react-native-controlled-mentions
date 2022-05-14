@@ -2,7 +2,7 @@ import { Position, UseMentionsConfig } from '@mention-types';
 import {
   defaultMentionTextStyle,
   emptyObject,
-  generateValueFromPartsAndChangedText,
+  generateValueFromMentionStateAndChangedText,
   getConfigsArray,
   getTriggerPartSuggestionKeywords,
   parseValue,
@@ -46,7 +46,7 @@ const useMentions = <TriggerName extends string>({
    * @param text
    */
   const handleTextChange = (text: string) => {
-    onChange(generateValueFromPartsAndChangedText(mentionState, text));
+    onChange(generateValueFromMentionStateAndChangedText(mentionState, text));
   };
 
   /**

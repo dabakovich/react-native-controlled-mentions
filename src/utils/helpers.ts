@@ -310,7 +310,7 @@ const getTriggerPartSuggestionKeywords = <TriggerName extends string>(
  * @param mentionState
  * @param changedText changed plain text
  */
-const generateValueFromPartsAndChangedText = (mentionState: MentionState, changedText: string) => {
+const generateValueFromMentionStateAndChangedText = (mentionState: MentionState, changedText: string) => {
   const { parts, plainText } = mentionState;
 
   const changes = diffChars(plainText, changedText) as CharactersDiffChange[];
@@ -664,7 +664,7 @@ export {
   getPartsInterval,
   getKeyword,
   getTriggerPartSuggestionKeywords,
-  generateValueFromPartsAndChangedText,
+  generateValueFromMentionStateAndChangedText,
   generateValueWithAddedSuggestion,
   generatePlainTextPart,
   generateTriggerPart,

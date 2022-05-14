@@ -13,7 +13,7 @@ export type {
 
 export {
   isTriggerPartType,
-  generateValueFromPartsAndChangedText,
+  generateValueFromMentionStateAndChangedText,
   getMentionValue,
   parseValue,
   replaceMentionValues,

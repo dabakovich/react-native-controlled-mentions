@@ -9,7 +9,7 @@ import {
 import {
   generateTriggerPart,
   generatePlainTextPart,
-  generateValueFromPartsAndChangedText,
+  generateValueFromMentionStateAndChangedText,
   getTriggerPartSuggestionKeywords,
   getMentionValue,
   parseValue,
@@ -236,7 +236,7 @@ test('generates correct parts', () => {
 test('generates value from parts and changed text', () => {
   const { parts, plainText } = parseValue('Hey', [mentionPartType]);
 
-  const newValue = generateValueFromPartsAndChangedText(
+  const newValue = generateValueFromMentionStateAndChangedText(
     {
       parts,
       plainText,
