@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { FC, useState } from 'react';
 import { Pressable, SafeAreaView, Text, TextInput, View } from 'react-native';
-import { MentionInput, Suggestion, SuggestionsProvidedProps, Triggers } from '../src';
-import { useMentions } from '../src/hooks';
+import { MentionInput, Suggestion, SuggestionsProvidedProps, Triggers, useMentions } from '../src';
 
 const users = [
   {
@@ -82,7 +81,7 @@ const triggersConfig = {
 // Config of highlightable patterns (like links, bold, italic text etc.)
 const patternsConfig = {
   url: {
-    pattern: /a/gi,
+    pattern: /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi,
     textStyle: { color: 'blue' },
   },
 };
@@ -115,7 +114,7 @@ type MentionsClassComponentState = {
 
 // If for some reason you don't like functional components and hooks – you can use class components with `MentionInput` component
 class MentionsClassComponent extends React.Component<any, MentionsClassComponentState> {
-  constructor(props) {
+  constructor(props: any) {
     super(props);
 
     this.state = {
