@@ -247,7 +247,7 @@ Callback that will trigger external `value` update.
 
 #### `triggersConfig: TriggersConfig<TriggerName>`
 Config that allows you to define you what trigger types will handle your input (mentions, hashtags, etc.).<br>
-It presents an object with `TriggerName` union type keys (for instance `'mention' | 'hashtag'`) and [`TriggerPartType`](#type-triggerparttype) values.
+It presents an object with `TriggerName` union type keys (for instance `'mention' | 'hashtag'`) and [`TriggerConfig`](#type-triggerconfig) values.
 
 <details>
 <summary>Example</summary>
@@ -272,7 +272,7 @@ const triggersConfig: TriggersConfig<'mention' | 'hashtag'> = {
 
 #### `patternsConfig: PatternsConfig`
 Config that allows to define what another highlights should support your input (like urls, bold, italic text, etc.).<br>
-It presents an object with pattern name keys (for instance `url`, `bold`) and [`PatternPartType`](#type-patternparttype) values.
+It presents an object with pattern name keys (for instance `url`, `bold`) and [`PatternConfig`](#type-patternconfig) values.
 
 <details>
 <summary>Example</summary>
@@ -287,21 +287,24 @@ const patternsConfig: PatternsConfig = {
 ```
 </details>
 
-### Type `PartType`
+### Type `Config`
 
-[TriggerPartType](#type-triggerparttype) | [PatternPartType](#type-patternparttype)
+[TriggerConfig](#type-triggerconfig) | [PatternConfig](#type-patternconfig)
 
-### Type `TriggerPartType`
+### Type `TriggerConfig`
 
-| **Property name**           | **Description**                                                                   | **Type**                                              | **Required** | **Default** |
-|-----------------------------|-----------------------------------------------------------------------------------|-------------------------------------------------------|--------------|-------------|
-| `trigger`                   | Character that will trigger current mention type                                  | string                                                | true         |             |
-| `allowedSpacesCount`        | How much spaces are allowed for mention keyword                                   | number                                                | false        | 1           |
-| `isInsertSpaceAfterMention` | Should we add a space after selected mentions if the mention is at the end of row | boolean                                               | false        | false       |
-| `textStyle`                 | Text style for mentions in `TextInput`                                            | StyleProp\<TextStyle>                                 | false        |             |
-| `getPlainString`            | Function for generating custom mention text in text input                         | (mention: [TriggerData](#type-triggerdata)) => string | false        |             |
+| **Property name**           | **Description**                                                                                 | **Type**                                                  | **Required**                | **Default** |
+|-----------------------------|-------------------------------------------------------------------------------------------------|-----------------------------------------------------------|-----------------------------|-------------|
+| `trigger`                   | Character that will trigger current mention type                                                | string                                                    | true                        |             |
+| `pattern`                   | Custom trigger pattern                                                                          | number                                                    | false                       |             |
+| `getTriggerData`            | Callback for getting [TriggerData](#type-triggerdata), is required when we have custom pattern  | (match: string) => [TriggerData](#type-triggerdata)       | true, when `pattern` exists |             |
+| `getTriggerValue`           | Callback for getting trigger value, is required when we have custom pattern                     | (triggerData: [TriggerData](#type-triggerdata)) => string | true, when `pattern` exists |             |
+| `allowedSpacesCount`        | How much spaces are allowed for mention keyword                                                 | number                                                    | false                       |             |
+| `isInsertSpaceAfterMention` | Should we add a space after selected mentions if the mention is at the end of row               | boolean                                                   | false                       | false       |
+| `textStyle`                 | Text style for mentions in `TextInput`                                                          | StyleProp\<TextStyle>                                     | false                       |             |
+| `getPlainString`            | Function for generating custom mention text in text input                                       | (mention: [TriggerData](#type-triggerdata)) => string     | false                       |             |
 
-### Type `PatternPartType`
+### Type `PatternConfig`
 
 | **Property name** | **Description**                                          | **Type**              | **Required** | **Default** |
 |-------------------|----------------------------------------------------------|-----------------------|--------------|-------------|
@@ -342,12 +345,12 @@ Name that will be shown in `MentionInput` when user will select the suggestion.
 
 ### Type `TriggerData`
 
-For example, we have that mention value `@[David Tabaka](123)`. Then after parsing that string by `mentionRegEx` we will
+For example, we have that mention value `{@}[David Tabaka](123)`. Then after parsing that string by `mentionRegEx` we will
 get next properties:
 
 `original: string`
 
-The whole mention value string - `@[David Tabaka](123)`
+The whole mention value string - `{@}[David Tabaka](123)`
 
 `trigger: string`
 
@@ -364,19 +367,20 @@ The extracted id - `123`
 ### Default pattern `mentionRegEx`
 
 ```jsregexp
-/((.)\[([^[]*)]\(([^(^)]*)\))/gi
+/({([^{^}]*)}\[([^[]*)]\(([^(^)]*)\))/i
 ```
 
 ### `MentionInput` component props
 
 If you prefer to use class component without hooks the `MentionInput` is for you.
 
-| **Property name** | **Description**                                                        | **Type**                     | **Required** | **Default** |
-|-------------------|------------------------------------------------------------------------|------------------------------|--------------|-------------|
-| `value`           | The same as in `TextInput`                                             | string                       | true         |             |
-| `onChange`        | The same as in `TextInput`                                             | (value: string) => void      | true         |             |
-| `partTypes`       | Declare what part types you want to support (mentions, hashtags, urls) | [PartType](#type-parttype)[] | false        | []          |
-| ...textInputProps | Other text input props                                                 | Partial<TextInputProps>      | false        |             |
+| **Property name** | **Description**                                                       | **Type**                              | **Required** | **Default** |
+|-------------------|-----------------------------------------------------------------------|---------------------------------------|--------------|-------------|
+| `value`           | The same as in `TextInput`                                            | string                                | true         |             |
+| `onChange`        | The same as in `TextInput`                                            | (value: string) => void               | true         |             |
+| `triggersConfig`  | Declare what trigger configs you want to support (mentions, hashtags) | [TriggerConfig](#type-triggerconfig)] | false        | {}          |
+| `patternsConfig`  | Declare what pattern configs you want to support (urls, bold, italic) | [PatternConfig](#type-patternconfig)] | false        | {}          |
+| ...textInputProps | Other text input props                                                | Partial<TextInputProps>               | false        |             |
 
 ## Parsing Mention's Value
 
@@ -387,16 +391,16 @@ from `MentionInput`'s value using your own logic.
 import { mentionRegEx } from 'react-native-controlled-mentions';
 ```
 
-Or you can use `replaceMentionValues` helper to replace all mentions from `MentionInput`'s input using
+Or you can use `replaceTriggerValues` helper to replace all mentions from `MentionInput`'s input using
 your replacer function that receives [TriggerData](#type-triggerdata) type and returns string.
 
 ```ts
-import { replaceMentionValues } from 'react-native-controlled-mentions';
+import { replaceTriggerValues } from 'react-native-controlled-mentions';
 
-const value = 'Hello @[David Tabaka](5)! How are you?';
+const value = 'Hello {@}[David Tabaka](5)! How are you?';
 
-console.log(replaceMentionValues(value, ({ id }) => `@${id}`)); // Hello @5! How are you?
-console.log(replaceMentionValues(value, ({ name }) => `@${name}`)); // Hello @David Tabaka! How are you?
+console.log(replaceTriggerValues(value, ({ id }) => `@${id}`)); // Hello @5! How are you?
+console.log(replaceTriggerValues(value, ({ name }) => `@${name}`)); // Hello @David Tabaka! How are you?
 ```
 
 ## Rendering Mention's Value
@@ -409,9 +413,9 @@ Here is an example:
 ```typescript jsx
 import {
   Part,
-  PartType,
+  Config,
   parseValue,
-  isTriggerPartType,
+  isTriggerConfig,
 } from 'react-native-controlled-mentions';
 
 /**
@@ -425,16 +429,16 @@ const renderPart = (
   index: number,
 ) => {
   // Just plain text
-  if (!part.partType) {
+  if (!part.config) {
     return <Text key={index}>{part.text}</Text>;
   }
 
   // Mention type part
-  if (isTriggerPartType(part.partType)) {
+  if (isTriggerConfig(part.config)) {
     return (
       <Text
         key={`${index}-${part.data?.trigger}`}
-        style={part.partType.textStyle}
+        style={part.config.textStyle}
         onPress={() => console.log('Pressed', part.data)}
       >
         {part.text}
@@ -446,7 +450,7 @@ const renderPart = (
   return (
     <Text
       key={`${index}-pattern`}
-      style={part.partType.textStyle}
+      style={part.config.textStyle}
     >
       {part.text}
     </Text>
@@ -457,13 +461,13 @@ const renderPart = (
  * Value renderer. Parsing value to parts array and then mapping the array using 'renderPart'
  *
  * @param value - value from MentionInput
- * @param partTypes - the part types array that you providing to MentionInput
+ * @param configs - configs array that you providing to MentionInput
  */
 const renderValue: FC = (
   value: string,
-  partTypes: PartType[],
+  configs: Config[],
 ) => {
-  const { parts } = parseValue(value, partTypes);
+  const { parts } = parseValue(value, configs);
 
   return <Text>{parts.map(renderPart)}</Text>;
 };

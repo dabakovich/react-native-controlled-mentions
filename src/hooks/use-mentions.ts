@@ -1,6 +1,6 @@
 import { Position, UseMentionsConfig } from '@mention-types';
 import {
-  defaultMentionTextStyle,
+  defaultTriggerTextStyle,
   emptyObject,
   generateValueFromMentionStateAndChangedText,
   getConfigsArray,
@@ -86,13 +86,13 @@ const useMentions = <TriggerName extends string>({
     children: React.createElement(
       Text,
       null,
-      mentionState.parts.map(({ text, partType, data }, index) =>
-        partType
+      mentionState.parts.map(({ text, config, data }, index) =>
+        config
           ? React.createElement(
               Text,
               {
                 key: `${index}-${data?.trigger ?? 'pattern'}`,
-                style: partType.textStyle ?? defaultMentionTextStyle,
+                style: config.textStyle ?? defaultTriggerTextStyle,
               },
               text,
             )

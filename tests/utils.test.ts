@@ -1,8 +1,8 @@
 import {
-  TriggerPartType,
+  TriggerConfig,
   Part,
-  PartType,
-  PatternPartType,
+  Config,
+  PatternConfig,
   PatternsConfig,
   TriggersConfig,
 } from '../src/types';
@@ -11,9 +11,9 @@ import {
   generatePlainTextPart,
   generateValueFromMentionStateAndChangedText,
   getTriggerPartSuggestionKeywords,
-  getMentionValue,
+  getTriggerValue,
   parseValue,
-  replaceMentionValues,
+  replaceTriggerValues,
   getConfigsArray,
   getTextLength,
   getKeyword,
@@ -43,33 +43,33 @@ const users = [
   },
 ];
 
-const mentionPartType: TriggerPartType = {
+const mentionConfig: TriggerConfig = {
   trigger: '@',
 };
 
-const hashtagPartType: TriggerPartType = {
+const hashtagConfig: TriggerConfig = {
   trigger: '#',
 };
 
-const urlPatternPartType: PatternPartType = {
+const urlPatternConfig: PatternConfig = {
   pattern:
     /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi,
 };
 
-const partTypes: PartType[] = [mentionPartType, hashtagPartType, urlPatternPartType];
+const configs: Config[] = [mentionConfig, hashtagConfig, urlPatternConfig];
 
 const triggersConfig: TriggersConfig<'mention'> = {
-  mention: mentionPartType,
+  mention: mentionConfig,
 };
 
 const patternsConfig: PatternsConfig = {
-  url: urlPatternPartType,
+  url: urlPatternConfig,
 };
 
 test('generates parts array from configs', () => {
   expect(getConfigsArray(triggersConfig, patternsConfig)).toEqual([
-    mentionPartType,
-    urlPatternPartType,
+    mentionConfig,
+    urlPatternConfig,
   ]);
 });
 
@@ -145,21 +145,21 @@ test('getting correct parts interval', () => {
 test('generates regex result part', () => {
   const user = users[1];
 
-  const mentionValue = getMentionValue(mentionPartType.trigger, user);
-  expect(mentionValue).toEqual(`@[${user.name}](${user.id})`);
+  const mentionValue = getTriggerValue(mentionConfig, user);
+  expect(mentionValue).toEqual(`{@}[${user.name}](${user.id})`);
 
   const mentionData = {
     original: mentionValue,
-    trigger: mentionPartType.trigger,
+    trigger: mentionConfig.trigger,
     ...user,
   };
-  const mentionPart = generateTriggerPart(mentionPartType, mentionData);
+  const mentionPart = generateTriggerPart(mentionConfig, mentionData);
 
   const expectedPlainText = `@${user.name}`;
 
   expect(mentionPart).toEqual<Part>({
     text: expectedPlainText,
-    partType: mentionPartType,
+    config: mentionConfig,
     data: mentionData,
     position: {
       start: 0,
@@ -169,39 +169,39 @@ test('generates regex result part', () => {
 });
 
 test('generates correct parts length from value', () => {
-  expect(parseValue('Hey David! How are you?', partTypes).parts.length).toEqual(1);
+  expect(parseValue('Hey David! How are you?', configs).parts.length).toEqual(1);
 
-  expect(parseValue('@[David](1)', partTypes).parts.length).toEqual(1);
+  expect(parseValue('{@}[David](1)', configs).parts.length).toEqual(1);
 
-  expect(parseValue('Hey, @[David](1)', partTypes).parts.length).toEqual(2);
+  expect(parseValue('Hey, {@}[David](1)', configs).parts.length).toEqual(2);
 
-  expect(parseValue('Hey, @[David](1)! How are you?', partTypes).parts.length).toEqual(3);
+  expect(parseValue('Hey, {@}[David](1)! How are you?', configs).parts.length).toEqual(3);
 
   expect(
-    parseValue('https://google.com/, Hey, @[David](1)! How are you?', partTypes).parts.length,
+    parseValue('https://google.com/, Hey, {@}[David](1)! How are you?', configs).parts.length,
   ).toEqual(4);
 
   expect(
-    parseValue('https://google.com/, Hey, @[David](1)! How are you, @[David](1)?', partTypes).parts
+    parseValue('https://google.com/, Hey, {@}[David](1)! How are you, {@}[David](1)?', configs).parts
       .length,
   ).toEqual(6);
 
-  expect(parseValue('#[help](help)', partTypes).parts.length).toEqual(1);
+  expect(parseValue('{#}[help](help)', configs).parts.length).toEqual(1);
 
   expect(
-    parseValue('#[help](help), @[David](1), #[to_do](to_do)!', partTypes).parts.length,
+    parseValue('{#}[help](help), {@}[David](1), {#}[to_do](to_do)!', configs).parts.length,
   ).toEqual(6);
 });
 
 test('generates correct parts', () => {
   const user = users[1];
 
-  const mentionValue = `@[${user.name}](${user.id})`;
+  const mentionValue = `{@}[${user.name}](${user.id})`;
 
   const expectingPlainText = `@${user.name}`;
 
   const expectedMentionPart = {
-    partType: mentionPartType,
+    config: mentionConfig,
     text: expectingPlainText,
     data: {
       id: user.id,
@@ -215,11 +215,11 @@ test('generates correct parts', () => {
     },
   };
 
-  let { parts } = parseValue(mentionValue, [mentionPartType]);
+  let { parts } = parseValue(mentionValue, [mentionConfig]);
 
   expect(parts).toEqual<Part[]>([expectedMentionPart]);
 
-  ({ parts } = parseValue(`${mentionValue} hey!`, [mentionPartType]));
+  ({ parts } = parseValue(`${mentionValue} hey!`, [mentionConfig]));
 
   expect(parts).toEqual<Part[]>([
     expectedMentionPart,
@@ -234,7 +234,7 @@ test('generates correct parts', () => {
 });
 
 test('generates value from parts and changed text', () => {
-  const { parts, plainText } = parseValue('Hey', [mentionPartType]);
+  const { parts, plainText } = parseValue('Hey', [mentionConfig]);
 
   const newValue = generateValueFromMentionStateAndChangedText(
     {
@@ -256,7 +256,7 @@ const getExpectingResultForKeyword = (keyword?: string) => ({
 test('getting correct mention part type keywords', () => {
   let text = 'Hello @David Tabaka how are you?';
 
-  let { parts, plainText } = parseValue(text, [mentionPartType]);
+  let { parts, plainText } = parseValue(text, [mentionConfig]);
 
   expect(
     getTriggerPartSuggestionKeywords(
@@ -326,10 +326,10 @@ test('getting correct mention part type keywords', () => {
   ).toEqual(getExpectingResultForKeyword(undefined));
 
   // Text with already present mention part type
-  text = 'Hello @[David](2b) how are you?';
-  ({ parts, plainText } = parseValue(text, [mentionPartType]));
+  text = 'Hello {@}[David](2b) how are you?';
+  ({ parts, plainText } = parseValue(text, [mentionConfig]));
 
-  // 'Hello @[Dav|id](2b) how are you?' - should not find keyword due to the we are in mention
+  // 'Hello {@}[Dav|id](2b) how are you?' - should not find keyword due to the we are in mention
   expect(
     getTriggerPartSuggestionKeywords(
       {
@@ -344,7 +344,7 @@ test('getting correct mention part type keywords', () => {
     ),
   ).toEqual(getExpectingResultForKeyword(undefined));
 
-  // 'Hello @[David](2b) ho|w are you?' - should not find keyword due to the we have mention there
+  // 'Hello {@}[David](2b) ho|w are you?' - should not find keyword due to the we have mention there
   expect(
     getTriggerPartSuggestionKeywords(
       {
@@ -359,7 +359,7 @@ test('getting correct mention part type keywords', () => {
     ),
   ).toEqual(getExpectingResultForKeyword(undefined));
 
-  // 'Hello @[David](2b)| how are you?' - should not find keyword due to the we have mention there
+  // 'Hello {@}[David](2b)| how are you?' - should not find keyword due to we have mention there
   expect(
     getTriggerPartSuggestionKeywords(
       {
@@ -376,9 +376,9 @@ test('getting correct mention part type keywords', () => {
 
   // Text with email entering
   text = 'Hello dabakovich@gmail.com';
-  ({ parts, plainText } = parseValue(text, [mentionPartType]));
+  ({ parts, plainText } = parseValue(text, [mentionConfig]));
 
-  // 'Hello dabakovich@gmail.com' - should not find keyword due to the we don't have space or new line before trigger
+  // 'Hello dabakovich@gmail.com' - should not find keyword due to we don't have space or new line before trigger
   expect(
     getTriggerPartSuggestionKeywords(
       {
@@ -395,7 +395,7 @@ test('getting correct mention part type keywords', () => {
 
   // Text with triggers at the beginning of string or line
   text = '@\n@';
-  ({ parts, plainText } = parseValue(text, [mentionPartType]));
+  ({ parts, plainText } = parseValue(text, [mentionConfig]));
 
   // 'Hello dabakovich@gmail.com' - should find trigger at the beginning of string
   expect(
@@ -429,11 +429,11 @@ test('getting correct mention part type keywords', () => {
 });
 
 test("replacing mention's value", () => {
-  const value = '@[David](1) and @[Mary](2)';
+  const value = '{@}[David](1) and {@}[Mary](2)';
 
-  const replacedById = replaceMentionValues(value, ({ id }) => `@${id}`);
+  const replacedById = replaceTriggerValues(value, ({ id }) => `@${id}`);
   expect(replacedById).toEqual<string>('@1 and @2');
 
-  const replacedByName = replaceMentionValues(value, ({ name }) => `@${name}`);
+  const replacedByName = replaceTriggerValues(value, ({ name }) => `@${name}`);
   expect(replacedByName).toEqual<string>('@David and @Mary');
 });

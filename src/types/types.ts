@@ -54,10 +54,9 @@ type SuggestionsProvidedProps = {
   onSelect: (suggestion: Suggestion) => void;
 };
 
-// ToDo — remove "=" here
-type TriggerPartType<TriggerName = string> = {
-  // ToDo — add support for non-single triggers (#38, #51)
-  // single trigger character eg '@' or '#'
+type TriggerConfigBase = {
+  // Should be resolved in custom regex feature
+  // Trigger characters eg '@', '@@' or '#'
   trigger: string;
 
   // How many spaces are allowed for mention keyword
@@ -73,30 +72,42 @@ type TriggerPartType<TriggerName = string> = {
   getPlainString?: (mention: TriggerData) => string;
 };
 
-type PatternPartType = {
+type DefaultTriggerConfig = TriggerConfigBase;
+
+type CustomTriggerConfig = TriggerConfigBase & {
+  pattern: RegExp;
+
+  getTriggerData: (regexMatch: string) => TriggerData;
+
+  getTriggerValue: (suggestion: Suggestion) => string;
+};
+
+type TriggerConfig = DefaultTriggerConfig | CustomTriggerConfig;
+
+type PatternConfig = {
   // RexExp with global flag
   pattern: RegExp;
 
   textStyle?: StyleProp<TextStyle>;
 };
 
-type PartType = TriggerPartType | PatternPartType;
+type Config = TriggerConfig | PatternConfig;
 
 /**
  * Config of trigger part types
  */
-type TriggersConfig<TriggerName extends string> = Record<TriggerName, TriggerPartType<TriggerName>>;
+type TriggersConfig<TriggerName extends string> = Record<TriggerName, TriggerConfig>;
 
 /**
  * Config of pattern part types that can highlight some matches in the `TextInput`
  */
-type PatternsConfig = Record<string, PatternPartType>;
+type PatternsConfig = Record<string, PatternConfig>;
 
 type Part = {
   text: string;
   position: Position;
 
-  partType?: PartType;
+  config?: Config;
 
   data?: TriggerData;
 };
@@ -126,11 +137,13 @@ export type {
   Position,
   Part,
   SuggestionsProvidedProps,
-  TriggerPartType,
-  PatternPartType,
+  DefaultTriggerConfig,
+  CustomTriggerConfig,
+  TriggerConfig,
+  PatternConfig,
   TriggersConfig,
   PatternsConfig,
-  PartType,
+  Config,
   MentionState,
   Triggers,
   UseMentionsConfig,

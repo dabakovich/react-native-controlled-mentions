@@ -5,18 +5,18 @@ export type {
   Suggestion,
   Part,
   SuggestionsProvidedProps,
-  PartType,
+  Config,
   TriggersConfig,
   PatternsConfig,
   Triggers,
 } from './types';
 
 export {
-  isTriggerPartType,
+  isTriggerConfig,
   generateValueFromMentionStateAndChangedText,
-  getMentionValue,
+  getTriggerValue,
   parseValue,
-  replaceMentionValues,
+  replaceTriggerValues,
 } from './utils';
 
-export { mentionRegEx } from './utils';
+export { triggerRegEx, singleGroupTriggerRegEx } from './utils';
