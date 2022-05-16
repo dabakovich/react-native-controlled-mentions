@@ -1,21 +1,57 @@
 import * as React from 'react';
 import { useState } from 'react';
 import { SafeAreaView, TextInput } from 'react-native';
-import { useMentions } from '../src';
+import { TriggersConfig, useMentions } from '../src';
 import { Suggestions } from './suggestions-component';
 import { hashtags, users } from './data';
 
-// Config of suggestible triggers
-const triggersConfig = {
+// Different trigger examples
+const triggersConfig: TriggersConfig<
+  'mention' | 'doubleMention' | 'customPatternMention' | 'hashtag'
+> = {
+  // Basic and simple mention trigger
   mention: {
     trigger: '@',
   },
+
+  // Hashtag with custom styles
   hashtag: {
     trigger: '#',
     textStyle: {
       fontWeight: 'bold',
       color: 'grey',
     },
+  },
+
+  // You can also use multiple characters trigger
+  doubleMention: {
+    trigger: '@@',
+  },
+
+  // You can define your custom pattern for mention value (for example `david:123`)
+  customPatternMention: {
+    trigger: '##',
+
+    // Your custom pattern (in this example – `name:id`)
+    pattern: /(\w+:\w+)/gi,
+
+    // How to parse regex match and get required for data for internal logic
+    getTriggerData: (match) => {
+      const [name, id] = match.split(':');
+
+      return ({
+        original: match,
+        trigger: '##',
+        name,
+        id,
+      });
+    },
+
+    // How to generate internal mention value from selected suggestion
+    getTriggerValue: (suggestion) => `${suggestion.name}:${suggestion.id}`,
+
+    // How the highlighted mention will appear in TextInput for user
+    getPlainString: (triggerData) => triggerData.name,
   },
 };
 
