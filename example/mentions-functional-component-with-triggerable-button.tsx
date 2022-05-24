@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useRef, useState } from 'react';
-import { Button, SafeAreaView, TextInput } from 'react-native';
+import { Button, Platform, SafeAreaView, TextInput } from 'react-native';
 import { useMentions, generateValueFromMentionStateAndChangedText } from '../src';
 import { Suggestions } from './suggestions-component';
 import { users } from './data';
@@ -36,11 +36,13 @@ const MentionsFunctionalComponent = () => {
     )}@${mentionState.plainText.substring(selection.end)}`;
     setTextValue(generateValueFromMentionStateAndChangedText(mentionState, newText));
 
-    // Put cursor just after '@'
-    const newCursor = selection.end;
-    textInput.current!.setNativeProps({
-      selection: { start: newCursor, end: newCursor },
-    });
+    if (Platform.OS !== 'android') {
+      // Put cursor just after '@'
+      const newCursor = selection.end;
+      textInput.current!.setNativeProps({
+        selection: { start: newCursor, end: newCursor },
+      });
+    }
   };
 
   return (
