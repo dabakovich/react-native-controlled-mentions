@@ -91,7 +91,7 @@ const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] 
 /**
  * Function for getting object with keyword for each mention part type
  *
- * If keyword is undefined then we don't tracking mention typing and shouldn't show suggestions.
+ * If keyword is undefined then we don't track mention typing and shouldn't show suggestions.
  * If keyword is not undefined (even empty string '') then we are tracking mention typing.
  *
  * Examples where @name is just plain text yet, not mention:
@@ -141,10 +141,10 @@ const getMentionPartSuggestionKeywords = (
       // - the trigger index is not event found
       triggerIndex == -1
 
-      // - the trigger index is out of found part with selection cursor
+      // - the trigger index is not in the part with the selection cursor
       || triggerIndex < part.position.start
 
-      // - the trigger is not at the beginning and we don't have space or new line before trigger
+      // - the trigger is not at the beginning and we don't have a space or a new line before trigger
       || (triggerIndex > 0 && !/[\s\n]/gi.test(plainText[triggerIndex - 1]))
     ) {
       return;
@@ -179,7 +179,7 @@ const getMentionPartSuggestionKeywords = (
 };
 
 /**
- * Generates new value when we changing text.
+ * Generates new value when we change the text.
  *
  * @param parts full parts list
  * @param originalText original plain text
