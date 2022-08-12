@@ -141,10 +141,10 @@ const getMentionPartSuggestionKeywords = (
       // - the trigger index is not event found
       triggerIndex == -1
 
-      // - the trigger index is out of found part with selection cursor
+      // - the trigger index is not in the part with the selection cursor
       || triggerIndex < part.position.start
 
-      // - the trigger is not at the beginning and we don't have space or new line before trigger
+      // - the trigger is not at the beginning and we don't have a space or a new line before trigger
       || (triggerIndex > 0 && !/[\s\n]/gi.test(plainText[triggerIndex - 1]))
     ) {
       return;
