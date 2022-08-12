@@ -179,7 +179,7 @@ const getMentionPartSuggestionKeywords = (
 };
 
 /**
- * Generates new value when we changing text.
+ * Generates new value when we change the text.
  *
  * @param parts full parts list
  * @param originalText original plain text
