@@ -91,7 +91,7 @@ const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] 
 /**
  * Function for getting object with keyword for each mention part type
  *
- * If keyword is undefined then we don't tracking mention typing and shouldn't show suggestions.
+ * If keyword is undefined then we don't track mention typing and shouldn't show suggestions.
  * If keyword is not undefined (even empty string '') then we are tracking mention typing.
  *
  * Examples where @name is just plain text yet, not mention:
