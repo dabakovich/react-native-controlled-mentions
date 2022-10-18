@@ -464,7 +464,7 @@ const parseValue = (
  * @param parts
  */
 const getValueFromParts = (parts: Part[]) => parts
-  .map(item => (item.data ? item.data.original : item.text))
+  .map(item => (item.data ? item.trigger === '#' ? `#${item.data.name}` : `@${item.data.name}` : item.text))
   .join('');
 
 /**
