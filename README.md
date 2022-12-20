@@ -208,7 +208,74 @@ const value = 'Hello @[David Tabaka](5)! How are you?';
 
 console.log(replaceMentionValues(value, ({id}) => `@${id}`)); // Hello @5! How are you?
 console.log(replaceMentionValues(value, ({name}) => `@${name}`)); // Hello @David Tabaka! How are you?
+```  
+
+
+### Get mentioned data from a text value  
+
+For get mentioned data from a value like this, for example:
 ```
+const value = "@[John Doe](someJohnId) how are you?"
+```
+You need to do a setup like this (please modify by your own)  
+```
+const mentionPartType: MentionPartType = {
+    trigger: '@',
+};
+
+const hashtagPartType: MentionPartType = {
+  trigger: '#',
+};
+
+const urlPatternPartType: PatternPartType = {
+    pattern: /(https?:\/\/|www\.)[-a-zA-Z0-9@:%._\+~#=]{1,256}\.(xn--)?[a-z0-9-]{2,20}\b([-a-zA-Z0-9@:%_\+\[\],.~#?&\/=]*[-a-zA-Z0-9@:%_\+\]~#?&\/=])*/gi,
+};
+
+const partTypes: PartType[] = [
+    mentionPartType,
+    hashtagPartType,
+    urlPatternPartType,
+];
+```
+
+consume it like this:  
+```
+const { parts, plainText } = parseValue(value, partTypes)
+```
+
+the value of parts will be like this (please transform it if you need it in different obj)  
+```
+[
+  {
+    "text": "@John Doe",
+    "position": {
+      "start": 0,
+      "end": 9
+    },
+    "partType": {
+      "trigger": "@"
+    },
+    "data": {
+      "original": "@[John Doe](someJohnId)",
+      "trigger": "@",
+      "name": "John Doe",
+      "id": "someJohnId"
+    }
+  },
+  {
+    "text": " how are you?",
+    "position": {
+      "start": 9,
+      "end": 22
+    }
+  }
+]
+```
+
+
+
+
+
 
 Rendering `MentionInput`'s value
 -
