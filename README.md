@@ -101,7 +101,7 @@ API
 | **Property name**     | **Description**                                                	    | **Type**                                  | **Required** 	| **Default** 	|
 |-------------------	|--------------------------------------------------------------------   |----------------------------------------   |------------   |------------   |
 | `value`             	| The same as in `TextInput`                                            | string                 	                | true     	    |               |
-| `onChange`          	| The same as in `TextInput`                                            | (value: string) => void 	                | true     	    |               |
+| `onChange`          	| The same as in `TextInput`                                            | (value: string, mentionExtraData?: any) => void 	                | true     	    |               |
 | `partTypes`      	    | Declare what part types you want to support (mentions, hashtags, urls)| [PartType](#parttype-type)[]              | false    	    | []            |
 | `inputRef`          	| Reference to the `TextInput` component inside `MentionInput`	        | Ref\<TextInput>          	                | false    	    |               |
 | `containerStyle`    	| Style to the `MentionInput`'s root component                 	        | StyleProp\<TextStyle>                     | false    	    |               |
@@ -147,7 +147,7 @@ Examples where @name is just plain text yet, not mention and `|` is cursor posit
 'abc @|name dfg' - keyword is against ''
 'abc @name |dfg' - keyword is against undefined
 ```
-`onSuggestionPress: (suggestion: Suggestion) => void`
+`onSuggestionPress: (suggestion: Suggestion, mentionExtraData?: any) => void`
 
 You should call that callback when user selects any suggestion.
 
@@ -160,6 +160,11 @@ Unique id for each suggestion.
 `name: string`
 
 Name that will be shown in `MentionInput` when user will select the suggestion.
+
+`mentionExtraData: any`
+
+Any type of structure you desire to expose to the **onChange** method to handle extra mention manipulations
+
 
 ### `MentionData` type props
 
@@ -277,6 +282,113 @@ const renderValue: FC = (
   return <Text>{parts.map(renderPart)}</Text>;
 };
 ```
+Using `mentionExtraData` example
+-
+If you want to make additional manipulations with mentions you can use the optional `mentionExtraData` param.
+
+Here is an example:
+
+
+```tsx
+import React from "react";
+import { Pressable, Text, View } from "react-native";
+import {
+  MentionInput,
+  MentionSuggestionsProps,
+} from "react-native-controlled-mentions";
+
+const randomSuggestions = [
+  {
+    url: "google.com",
+    id: "123",
+    name: "Google",
+    avatar: "GoogleAvatarUrl",
+  },
+  {
+    url: "bing.com",
+    id: "345",
+    name: "Bing",
+    avatar: "BingAvatarUrl",
+  },
+];
+
+const MentionList = (props: MentionSuggestionsProps) => {
+  const { keyword, onSuggestionPress } = props;
+
+  if (keyword == null) {
+    return null;
+  }
+
+  const onAddMention = (mention: any) => {
+    const { name, id, url, avatar } = mention;
+
+    // preview purpose, you can pass any data to mention
+    const extraMentionData = {
+      url,
+      avatar,
+      name,
+      id,
+    };
+    // passes to MentionInput onChange, it's optional
+    onSuggestionPress({ id, name }, extraMentionData);
+  };
+
+  return (
+    <View>
+      {randomSuggestions
+        .filter((one) =>
+          one.name.toLocaleLowerCase().includes(keyword.toLocaleLowerCase())
+        )
+        .map((suggestion) => (
+          <Pressable
+            key={suggestion.id}
+            onPress={() => onAddMention(suggestion)}
+            style={{ padding: 12 }}
+          >
+            <Text>{suggestion.name}</Text>
+            <Text>{suggestion.url}</Text>
+            <Text>{suggestion.avatar}</Text>
+            <Text>{suggestion.id}</Text>
+          </Pressable>
+        ))}
+    </View>
+  );
+};
+
+export const ExtraMentionDataSample = () => {
+  const [textValue, setTextValue] = React.useState("");
+  const [mentions, setMentions] = React.useState([]);
+
+  const onChangeText = (text: string, mentionData?: any) => {
+    const newMentions = mentionData ? [...mentions, mentionData] : mentions;
+    // save newly selected mention
+    setMentions(newMentions);
+    setTextValue(text);
+  };
+
+  return (
+    <MentionInput
+      value={textValue}
+      onChange={onChangeText}
+      partTypes={[
+        {
+          trigger: "@",
+          renderSuggestions: (localProps) => {
+            return (
+              <MentionList
+                onSuggestionPress={localProps.onSuggestionPress}
+                keyword={localProps.keyword}
+              />
+            );
+          },
+        },
+      ]}
+    />
+  );
+};
+```
+
+
 
 To Do
 -

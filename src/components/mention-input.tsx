@@ -74,7 +74,7 @@ const MentionInput: FC<MentionInputProps> = (
    * - Get updated value
    * - Trigger onChange callback with new value
    */
-  const onSuggestionPress = (mentionType: MentionPartType) => (suggestion: Suggestion) => {
+  const onSuggestionPress = (mentionType: MentionPartType) => (suggestion: Suggestion, mentionExtraData?: any) => {
     const newValue = generateValueWithAddedSuggestion(
       parts,
       mentionType,
@@ -87,7 +87,7 @@ const MentionInput: FC<MentionInputProps> = (
       return;
     }
 
-    onChange(newValue);
+    onChange(newValue, mentionExtraData);
 
     /**
      * Move cursor to the end of just added mention starting from trigger string and including:

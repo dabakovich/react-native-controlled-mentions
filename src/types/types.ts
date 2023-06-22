@@ -7,6 +7,7 @@ type Suggestion = {
   name: string;
 };
 
+
 type MentionData = {
   original: string;
   trigger: string;
@@ -47,7 +48,7 @@ type Position = {
 
 type MentionSuggestionsProps = {
   keyword: string | undefined;
-  onSuggestionPress: (suggestion: Suggestion) => void;
+  onSuggestionPress: (suggestion: Suggestion, mentionExtraData?: any) => void;
 };
 
 type MentionPartType = {
@@ -93,7 +94,7 @@ type Part = {
 
 type MentionInputProps = Omit<TextInputProps, 'onChange'> & {
   value: string;
-  onChange: (value: string) => any;
+  onChange: (value: string, mentionExtraData?: any) => any;
 
   partTypes?: PartType[];
 
@@ -113,5 +114,5 @@ export type {
   MentionPartType,
   PatternPartType,
   PartType,
-  MentionInputProps,
+  MentionInputProps
 };
