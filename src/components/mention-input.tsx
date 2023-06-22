@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 
-import { PressedMentionData, MentionInputProps, MentionPartType, Suggestion } from '../types';
+import { MentionInputProps, MentionPartType, Suggestion } from '../types';
 import {
   defaultMentionTextStyle,
   generateValueFromPartsAndChangedText,
@@ -74,7 +74,7 @@ const MentionInput: FC<MentionInputProps> = (
    * - Get updated value
    * - Trigger onChange callback with new value
    */
-  const onSuggestionPress = (mentionType: MentionPartType) => (suggestion: Suggestion, mentionData?: PressedMentionData) => {
+  const onSuggestionPress = (mentionType: MentionPartType) => (suggestion: Suggestion, mentionExtraData?: any) => {
     const newValue = generateValueWithAddedSuggestion(
       parts,
       mentionType,
@@ -87,7 +87,7 @@ const MentionInput: FC<MentionInputProps> = (
       return;
     }
 
-    onChange(newValue, mentionData);
+    onChange(newValue, mentionExtraData);
 
     /**
      * Move cursor to the end of just added mention starting from trigger string and including:
