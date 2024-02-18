@@ -100,6 +100,8 @@ type MentionInputProps = Omit<TextInputProps, 'onChange'> & {
   inputRef?: Ref<TextInput>;
 
   containerStyle?: StyleProp<ViewStyle>;
+
+  deleteFullMentioned?: boolean;
 };
 
 export type {

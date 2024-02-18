@@ -185,7 +185,7 @@ const getMentionPartSuggestionKeywords = (
  * @param originalText original plain text
  * @param changedText changed plain text
  */
-const generateValueFromPartsAndChangedText = (parts: Part[], originalText: string, changedText: string) => {
+const generateValueFromPartsAndChangedText = (parts: Part[], originalText: string, changedText: string, deleteFullMentioned? :string) => {
   const changes = diffChars(originalText, changedText) as CharactersDiffChange[];
 
   let newParts: Part[] = [];
@@ -222,6 +222,10 @@ const generateValueFromPartsAndChangedText = (parts: Part[], originalText: strin
       default: {
         if (change.count !== 0) {
           newParts = newParts.concat(getPartsInterval(parts, cursor, change.count));
+          
+          if (deleteFullMentioned && originalText.length > changedText.length) {
+            newParts = removeFullMentionPart(parts, newParts);
+          }
 
           cursor += change.count;
         }
@@ -233,6 +237,14 @@ const generateValueFromPartsAndChangedText = (parts: Part[], originalText: strin
 
   return getValueFromParts(newParts);
 };
+
+const removeFullMentionPart = (parts: Part[], newParts: Part[]): Part[] =>
+    parts.filter((item1) => {
+        const correspondingItem2 = newParts.find((item2) => item1.text === item2.text);
+        
+        // If item1 has data.id and correspondingItem2 doesn't have data.id, remove item1
+        return !(item1.data?.id && !correspondingItem2?.data?.id);
+    });
 
 /**
  * Method for adding suggestion to the parts and generating value. We should:

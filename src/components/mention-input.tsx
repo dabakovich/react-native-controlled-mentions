@@ -30,6 +30,8 @@ const MentionInput: FC<MentionInputProps> = (
 
     onSelectionChange,
 
+    deleteFullMentioned,
+
     ...textInputProps
   },
 ) => {
@@ -54,7 +56,7 @@ const MentionInput: FC<MentionInputProps> = (
    * @param changedText
    */
   const onChangeInput = (changedText: string) => {
-    onChange(generateValueFromPartsAndChangedText(parts, plainText, changedText));
+    onChange(generateValueFromPartsAndChangedText(parts, plainText, changedText, deleteFullMentioned));
   };
 
   /**
