@@ -51,7 +51,7 @@ const getPartIndexByCursor = (parts: Part[], cursor: number, isIncludeEnd?: bool
  * @param cursor current cursor position
  * @param count count of characters that didn't change
  */
-const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] => {
+const getPartsInterval = (parts: Part[], cursor: number, count: number, deleteFullMentioned: boolean): Part[] => {
   const newCursor = cursor + count;
 
   const currentPartIndex = getPartIndexByCursor(parts, cursor);
@@ -69,6 +69,12 @@ const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] 
   // Push whole first affected part or sub-part of the first affected part
   if (currentPart.position.start === cursor && currentPart.position.end <= newCursor) {
     partsInterval.push(currentPart);
+  } else if (deleteFullMentioned && currentPart.data?.trigger === "@") {
+    partsInterval.push(
+      generatePlainTextPart(
+        currentPart.text.substring(0, -(cursor - currentPart.position.start))
+      )
+    );
   } else {
     partsInterval.push(generatePlainTextPart(currentPart.text.substr(cursor - currentPart.position.start, count)));
   }
@@ -80,6 +86,12 @@ const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] 
     // Push whole last affected part or sub-part of the last affected part
     if (newPart.position.end === newCursor && newPart.position.start >= cursor) {
       partsInterval.push(newPart);
+    } else if (deleteFullMentioned && newPart.data?.trigger === "@") {
+      partsInterval.push(
+        generatePlainTextPart(
+          newPart.text.substring(0, -(newCursor - newPart.position.start))
+        )
+      );
     } else {
       partsInterval.push(generatePlainTextPart(newPart.text.substr(0, newCursor - newPart.position.start)));
     }
@@ -185,7 +197,7 @@ const getMentionPartSuggestionKeywords = (
  * @param originalText original plain text
  * @param changedText changed plain text
  */
-const generateValueFromPartsAndChangedText = (parts: Part[], originalText: string, changedText: string, deleteFullMentioned? :string) => {
+const generateValueFromPartsAndChangedText = (parts: Part[], originalText: string, changedText: string, deleteFullMentioned = false) => {
   const changes = diffChars(originalText, changedText) as CharactersDiffChange[];
 
   let newParts: Part[] = [];
@@ -222,11 +234,6 @@ const generateValueFromPartsAndChangedText = (parts: Part[], originalText: strin
       default: {
         if (change.count !== 0) {
           newParts = newParts.concat(getPartsInterval(parts, cursor, change.count));
-          
-          if (deleteFullMentioned && originalText.length > changedText.length) {
-            newParts = removeFullMentionPart(parts, newParts);
-          }
-
           cursor += change.count;
         }
 
@@ -237,14 +244,6 @@ const generateValueFromPartsAndChangedText = (parts: Part[], originalText: strin
 
   return getValueFromParts(newParts);
 };
-
-const removeFullMentionPart = (parts: Part[], newParts: Part[]): Part[] =>
-    parts.filter((item1) => {
-        const correspondingItem2 = newParts.find((item2) => item1.text === item2.text);
-        
-        // If item1 has data.id and correspondingItem2 doesn't have data.id, remove item1
-        return !(item1.data?.id && !correspondingItem2?.data?.id);
-    });
 
 /**
  * Method for adding suggestion to the parts and generating value. We should:
