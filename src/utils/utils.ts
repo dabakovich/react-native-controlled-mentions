@@ -233,7 +233,8 @@ const generateValueFromPartsAndChangedText = (parts: Part[], originalText: strin
        */
       default: {
         if (change.count !== 0) {
-          newParts = newParts.concat(getPartsInterval(parts, cursor, change.count));
+          newParts = newParts.concat(getPartsInterval(parts, cursor, change.count, deleteFullMentioned));
+          
           cursor += change.count;
         }
 
