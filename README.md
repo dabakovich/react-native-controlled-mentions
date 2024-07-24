@@ -293,23 +293,23 @@ const patternsConfig: PatternsConfig = {
 
 ### Type `TriggerConfig`
 
-| **Property name**           | **Description**                                                                                 | **Type**                                                  | **Required**                | **Default** |
-|-----------------------------|-------------------------------------------------------------------------------------------------|-----------------------------------------------------------|-----------------------------|-------------|
-| `trigger`                   | Character that will trigger current mention type                                                | string                                                    | true                        |             |
-| `pattern`                   | Custom trigger pattern                                                                          | number                                                    | false                       |             |
-| `getTriggerData`            | Callback for getting [TriggerData](#type-triggerdata), is required when we have custom pattern  | (match: string) => [TriggerData](#type-triggerdata)       | true, when `pattern` exists |             |
-| `getTriggerValue`           | Callback for getting trigger value, is required when we have custom pattern                     | (triggerData: [TriggerData](#type-triggerdata)) => string | true, when `pattern` exists |             |
-| `allowedSpacesCount`        | How much spaces are allowed for mention keyword                                                 | number                                                    | false                       |             |
-| `isInsertSpaceAfterMention` | Should we add a space after selected mentions if the mention is at the end of row               | boolean                                                   | false                       | false       |
-| `textStyle`                 | Text style for mentions in `TextInput`                                                          | StyleProp\<TextStyle>                                     | false                       |             |
-| `getPlainString`            | Function for generating custom mention text in text input                                       | (mention: [TriggerData](#type-triggerdata)) => string     | false                       |             |
+| **Property name**           | **Description**                                                                                 | **Type**                                                                        | **Required**                | **Default** |
+|-----------------------------|-------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|-----------------------------|-------------|
+| `trigger`                   | Character that will trigger current mention type                                                | string                                                                          | true                        |             |
+| `pattern`                   | Custom trigger pattern                                                                          | number                                                                          | false                       |             |
+| `getTriggerData`            | Callback for getting [TriggerData](#type-triggerdata), is required when we have custom pattern  | (match: string) => [TriggerData](#type-triggerdata)                             | true, when `pattern` exists |             |
+| `getTriggerValue`           | Callback for getting trigger value, is required when we have custom pattern                     | (triggerData: [TriggerData](#type-triggerdata)) => string                       | true, when `pattern` exists |             |
+| `allowedSpacesCount`        | How much spaces are allowed for mention keyword                                                 | number                                                                          | false                       |             |
+| `isInsertSpaceAfterMention` | Should we add a space after selected mentions if the mention is at the end of row               | boolean                                                                         | false                       | false       |
+| `textStyle`                 | Text style for mentions in `TextInput`                                                          | StyleProp\<TextStyle> \| (mention: [TriggerData](#type-triggerdata)) => string  | false                       |             |
+| `getPlainString`            | Function for generating custom mention text in text input                                       | (mention: [TriggerData](#type-triggerdata)) => string                           | false                       |             |
 
 ### Type `PatternConfig`
 
-| **Property name** | **Description**                                          | **Type**              | **Required** | **Default** |
-|-------------------|----------------------------------------------------------|-----------------------|--------------|-------------|
-| `pattern`         | RegExp for parsing a pattern, should include global flag | RegExp                | true         |             |
-| `textStyle`       | Text style for pattern in `TextInput`                    | StyleProp\<TextStyle> | false        |             |
+| **Property name** | **Description**                                          | **Type**                                                                       | **Required** | **Default** |
+|-------------------|----------------------------------------------------------|--------------------------------------------------------------------------------|--------------|-------------|
+| `pattern`         | RegExp for parsing a pattern, should include global flag | RegExp                                                                         | true         |             |
+| `textStyle`       | Text style for pattern in `TextInput`                    | StyleProp\<TextStyle> \| (mention: [TriggerData](#type-triggerdata)) => string | false        |             |
 
 ### Type `SuggestionsProvidedProps`
 
