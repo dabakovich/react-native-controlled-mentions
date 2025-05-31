@@ -15,6 +15,7 @@ In addition, you can add custom styling for a regex pattern (like URLs).
 - [Installation](#installation)
 - [Getting Started](#getting-started)
 - [API](#api)
+- [Migration Guide](#migration-guide)
 - [Parsing Mention's Value](#parsing-mentions-value)
 - [Rendering Mention's Value](#rendering-mentions-value)
 - [To Do](#to-do)
@@ -410,6 +411,12 @@ If you prefer to use class component without hooks the `MentionInput` is for you
 | `triggersConfig`  | Declare what trigger configs you want to support (mentions, hashtags) | [TriggerConfig](#type-triggerconfig)] | false        | {}          |
 | `patternsConfig`  | Declare what pattern configs you want to support (urls, bold, italic) | [PatternConfig](#type-patternconfig)] | false        | {}          |
 | ...textInputProps | Other text input props                                                | Partial<TextInputProps>               | false        |             |
+
+## Migration Guide
+
+### From v2 to v3
+
+For detailed migration instructions from v2 to v3, please see [MIGRATION.md](./MIGRATION.md).
 
 ## Parsing Mention's Value
 
