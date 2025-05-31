@@ -497,13 +497,18 @@ const renderValue: FC = (value: string, configs: Config[]) => {
 
 ## To Do
 
+- Add ability to have dynamic text style (#134, #135)
+- Add ability to remove whole mention by backspace (#88, #129, #133)
 - ~~Add support for different text formatting (e.g. URLs)~~
 - ~~Add more customizations~~ DONE
 - ~~Add ability to handle few mention types ("#", "@" etc)~~ DONE
 
 ## Known Issues
 
-- Mention name regex accepts white spaces (e.g. `{name: ' ', value: 1}`)
+- Lags with very long text (#92)
+- Could remove mention when two triggers are together (#137)
+- Could merge mention with text on some Samsung devices (#118)
+- ~~Mention name regex accepts white spaces (e.g. `{name: ' ', value: 1}`)~~ FIXED
 - ~~Keyboard auto-correction not working if suggested word has the same length~~ FIXED
 - ~~Text becomes transparent when setting custom font size in TextInput~~ FIXED
 
