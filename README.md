@@ -375,7 +375,7 @@ Name that will be shown in `MentionInput` when user will select the suggestion.
 
 ### Type `TriggerData`
 
-For example, we have that mention value `{@}[David Tabaka](123)`. Then after parsing that string by `mentionRegEx` we will
+For example, we have that mention value `{@}[David Tabaka](123)`. Then after parsing that string by `triggerRegEx` we will
 get next properties:
 
 `original: string`
@@ -394,7 +394,7 @@ The extracted name - `David Tabaka`
 
 The extracted id - `123`
 
-### Default pattern `mentionRegEx`
+### Default pattern `triggerRegEx`
 
 ```jsregexp
 /({([^{^}]*)}\[([^[]*)]\(([^(^)]*)\))/i
@@ -424,7 +424,7 @@ You can import RegEx that is using in the component and then extract all your me
 from `MentionInput`'s value using your own logic.
 
 ```ts
-import { mentionRegEx } from 'react-native-controlled-mentions';
+import { triggerRegEx } from 'react-native-controlled-mentions';
 ```
 
 Or you can use `replaceTriggerValues` helper to replace all mentions from `MentionInput`'s input using
