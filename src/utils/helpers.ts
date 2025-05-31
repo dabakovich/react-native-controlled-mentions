@@ -148,7 +148,7 @@ const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] 
  * @param text
  */
 const getIsPrevPartTextSliceAcceptableForTrigger = (text: string) => {
-  return !Boolean(text) || /[\s\n]/gi.test(text[text.length - 1]);
+  return !text || /[\s\n]/gi.test(text[text.length - 1]);
 };
 
 const getKeyword = ({
@@ -260,7 +260,7 @@ const getTriggerPartSuggestionKeywords = <TriggerName extends string>(
   mentionState: MentionState,
   selection: Position,
   triggersConfig: TriggersConfig<TriggerName>,
-  onChange: (newValue: string) => void = () => {},
+  onChange: (newValue: string) => void,
 ) => {
   const keywordByTrigger: Partial<Triggers<keyof typeof triggersConfig>> = {};
 
@@ -519,7 +519,7 @@ const getTriggerValue = (triggerConfig: TriggerConfig, suggestion: Suggestion) =
   }
 
   return `{${triggerConfig.trigger}}[${suggestion.name}](${suggestion.id})`;
-}
+};
 
 const getTriggerPlainString = (config: TriggerConfig, triggerData: TriggerData) => {
   if (config.getPlainString != null) {
@@ -588,7 +588,7 @@ const parseValue = (value: string, configs: Config[], positionOffset = 0): Menti
     const textBeforeFirstMatch = dividedValueByRegex[0];
 
     // In case when we have some text before matched part parsing the text with rest part types
-    if (Boolean(textBeforeFirstMatch)) {
+    if (textBeforeFirstMatch) {
       const plainTextAndParts = parseValue(textBeforeFirstMatch, restConfigs, positionOffset);
       parts = parts.concat(plainTextAndParts.parts);
       plainText += plainTextAndParts.plainText;
@@ -644,7 +644,7 @@ const parseValue = (value: string, configs: Config[], positionOffset = 0): Menti
 
       // Check if we have a text after last matched part
       // We should parse the text with rest part types
-      if (Boolean(textAfterMatch)) {
+      if (textAfterMatch) {
         const plainTextAndParts = parseValue(
           textAfterMatch,
           restConfigs,
