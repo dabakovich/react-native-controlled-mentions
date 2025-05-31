@@ -260,7 +260,7 @@ const getTriggerPartSuggestionKeywords = <TriggerName extends string>(
   mentionState: MentionState,
   selection: Position,
   triggersConfig: TriggersConfig<TriggerName>,
-  onChange: (newValue: string) => void,
+  onChange?: (newValue: string) => void,
 ) => {
   const keywordByTrigger: Partial<Triggers<keyof typeof triggersConfig>> = {};
 
@@ -289,7 +289,7 @@ const getTriggerPartSuggestionKeywords = <TriggerName extends string>(
           return;
         }
 
-        onChange(newValue);
+        onChange?.(newValue);
 
         /**
          * ToDo — test is this still not working
