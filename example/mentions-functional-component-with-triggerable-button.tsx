@@ -39,7 +39,7 @@ const MentionsFunctionalComponent = () => {
     if (Platform.OS !== 'android') {
       // Put cursor just after '@'
       const newCursor = selection.end;
-      textInput.current!.setNativeProps({
+      textInput.current?.setNativeProps({
         selection: { start: newCursor, end: newCursor },
       });
     }
