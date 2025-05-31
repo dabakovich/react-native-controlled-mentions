@@ -1,36 +1,412 @@
-# Migration Guide
+# Migration Guide: v2 to v3
 
-## From v2 to v3
+This guide will help you migrate your existing `react-native-controlled-mentions` implementation from v2 to v3.
 
-v3 represents a complete architectural overhaul of react-native-controlled-mentions. The library has been redesigned from the ground up with a focus on flexibility, performance, and developer experience. The most significant change is the deprecating of the `MentionInput` component in favor of a powerful `useMentions` hook.
+## Overview of Changes
 
-### 1. Replace `MentionInput` with `useMentions` hook
+Version 3 introduces significant architectural changes to improve flexibility and type safety:
 
-**v2 approach:**
+- **Hook-based API**: Replace `MentionInput` component with `useMentions` hook
+- **Separate configuration objects**: Split `partTypes` into `triggersConfig` and `patternsConfig`
+- **New mention format**: Mentions now include trigger in curly braces (e.g., `{@}[Name](id)`)
+- **Simplified suggestions handling**: Use `SuggestionsProvidedProps` interface
+- **Required single capturing group**: Pattern regex must include single capturing group
+
+## Step-by-Step Migration
+
+### 1. Update Imports
+
+**v2:**
 
 ```tsx
-import { MentionInput } from 'react-native-controlled-mentions';
+import { MentionInput, Suggestion } from 'react-native-controlled-mentions';
+```
 
+**v3:**
+
+```tsx
+import {
+  useMentions,
+  SuggestionsProvidedProps,
+  TriggersConfig,
+  PatternsConfig,
+} from 'react-native-controlled-mentions';
+import { TextInput } from 'react-native';
+```
+
+### 2. Replace MentionInput with useMentions Hook
+
+**v2:**
+
+```tsx
+const App = () => {
+  const [value, setValue] = useState('Hello @[Mary](2)! How are you?');
+
+  return (
+    <MentionInput
+      value={value}
+      onChange={setValue}
+      partTypes={
+        [
+          /* ... */
+        ]
+      }
+      style={
+        {
+          /* styles */
+        }
+      }
+      placeholder="Type here..."
+    />
+  );
+};
+```
+
+**v3:**
+
+```tsx
+const App = () => {
+  const [value, setValue] = useState('Hello {@}[Mary](2)! How are you?');
+
+  const { textInputProps, triggers } = useMentions({
+    value,
+    onChange: setValue,
+    triggersConfig,
+    patternsConfig,
+  });
+
+  return (
+    <TextInput
+      {...textInputProps}
+      style={
+        {
+          /* styles */
+        }
+      }
+      placeholder="Type here..."
+    />
+  );
+};
+```
+
+### 3. Convert partTypes to Separate Configurations
+
+**v2:**
+
+```tsx
 <MentionInput
-  value={textValue}
-  onChange={setTextValue}
   partTypes={[
     {
-      trigger: '@',
-      renderSuggestions: ({ keyword, onSuggestionPress }) => (
-        <Suggestions keyword={keyword} onSelect={onSuggestionPress} suggestions={users} />
-      ),
-      textStyle: { fontWeight: 'bold', color: 'blue' },
+      trigger: "@",
+      renderSuggestions: renderMentionSuggestions
     },
+    {
+      trigger: "#",
+      allowedSpacesCount: 0,
+      renderSuggestions: renderHashtagSuggestions,
+      textStyle: { fontWeight: "bold", color: "grey" }
+    },
+    {
+      pattern: /(https?:\/\/|www\.)[-a-zA-Z0-9@:%._\+~#=]{1,256}\.(xn--)?[a-z0-9-]{2,20}\b([-a-zA-Z0-9@:%_\+\[\],.~#?&\/=]*[-a-zA-Z0-9@:%_\+\]~#?&\/=])*/gi,
+      textStyle: { color: "blue" }
+    }
   ]}
+
+  /* ... */
 />;
 ```
 
-**v3 approach:**
+**v3:**
 
 ```tsx
-import { useMentions, TriggersConfig } from 'react-native-controlled-mentions';
-import { TextInput } from 'react-native';
+// Create as constants outside component or memoize with useMemo
+const triggersConfig: TriggersConfig<'mention' | 'hashtag'> = {
+  mention: {
+    trigger: '@',
+    textStyle: { fontWeight: 'bold', color: 'blue' },
+  },
+  hashtag: {
+    trigger: '#',
+    allowedSpacesCount: 0,
+    textStyle: { fontWeight: 'bold', color: 'grey' },
+  },
+};
+
+const patternsConfig: PatternsConfig = {
+  url: {
+    pattern:
+      /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi,
+    textStyle: { color: 'blue' },
+  },
+};
+```
+
+### 4. Update Suggestions Implementation
+
+**v2:**
+
+```tsx
+const renderSuggestions: (suggestions: Suggestion[]) => FC<MentionSuggestionsProps> =
+  (suggestions) =>
+  ({ keyword, onSuggestionPress }) => {
+    if (keyword == null) {
+      return null;
+    }
+
+    return (
+      <View>
+        {suggestions
+          .filter((one) => one.name.toLocaleLowerCase().includes(keyword.toLocaleLowerCase()))
+          .map((one) => (
+            <Pressable key={one.id} onPress={() => onSuggestionPress(one)} style={{ padding: 12 }}>
+              <Text>{one.name}</Text>
+            </Pressable>
+          ))}
+      </View>
+    );
+  };
+
+const renderMentionSuggestions = renderSuggestions(users);
+const renderHashtagSuggestions = renderSuggestions(hashtags);
+```
+
+**v3:**
+
+```tsx
+const Suggestions: FC<SuggestionsProvidedProps & { suggestions: any[] }> = ({
+  keyword,
+  onSelect,
+  suggestions,
+}) => {
+  if (keyword == null) {
+    return null;
+  }
+
+  return (
+    <View>
+      {suggestions
+        .filter((one) =>
+          one.name.toLocaleLowerCase().includes(keyword.toLocaleLowerCase())
+        )
+        .map((one) => (
+          <Pressable
+            key={one.id}
+            onPress={() => onSelect(one)}
+            style={{ padding: 12 }}>
+            <Text>{one.name}</Text>
+          </Pressable>
+        ))}
+    </View>
+  );
+};
+
+// Usage:
+<Suggestions {...triggers.mention} suggestions={users} />
+<Suggestions {...triggers.hashtag} suggestions={hashtags} />
+```
+
+### 5. Update Mention Format in Initial Values
+
+**v2 format:** `@[Mary](2)`
+
+**v3 format:** `{@}[Mary](2)`
+
+```tsx
+// v2
+const [value, setValue] = useState('Hello @[Mary](2)! How are you?');
+```
+
+
+```tsx
+// v3
+const [value, setValue] = useState('Hello {@}[Mary](2)! How are you?');
+```
+
+### 6. Pattern Regex Requirements
+
+**Important:** In v3, all pattern regex must include single capturing group.
+
+**v2 (may work without capturing group):**
+
+```tsx
+pattern: /https?:\/\/[^\s]+/gi;
+```
+
+**v3 (requires single capturing group):**
+
+```tsx
+pattern: /(https?:\/\/[^\s]+)/gi;
+```
+
+### 7. Update Helper Functions
+
+Several helper functions have been renamed for consistency:
+
+**v2:**
+
+```tsx
+import {
+  replaceMentionValues,
+  isMentionPartType,
+  mentionRegEx,
+} from 'react-native-controlled-mentions';
+
+// Replace mentions in text
+const processedText = replaceMentionValues(value, ({ id }) => `@${id}`);
+
+// Check if part type is mention
+if (isMentionPartType(partType)) {
+  // Handle mention
+}
+
+// Use mention regex
+const matches = value.match(mentionRegEx);
+```
+
+**v3:**
+
+```tsx
+import {
+  replaceTriggerValues,
+  isTriggerConfig,
+  triggerRegEx,
+} from 'react-native-controlled-mentions';
+
+// Replace triggers in text
+const processedText = replaceTriggerValues(value, ({ id }) => `@${id}`);
+
+// Check if config is trigger config
+if (isTriggerConfig(config)) {
+  // Handle trigger
+}
+
+// Use trigger regex
+const matches = value.match(triggerRegEx);
+```
+
+**Migration mapping:**
+
+- `replaceMentionValues` → `replaceTriggerValues`
+- `isMentionPartType` → `isTriggerConfig`
+- `mentionRegEx` → `triggerRegEx`
+
+## Key API Changes Summary
+
+| Feature                 | v2                        | v3                                          |
+| ----------------------- | ------------------------- | ------------------------------------------- |
+| **Main Component**      | `<MentionInput />`        | `useMentions()` hook + `<TextInput />`      |
+| **Configuration**       | `partTypes` array         | `triggersConfig` + `patternsConfig` objects |
+| **Mention Format**      | `@[Name](id)`             | `{@}[Name](id)`                             |
+| **Suggestions Props**   | `MentionSuggestionsProps` | `SuggestionsProvidedProps`                  |
+| **Suggestion Callback** | `onSuggestionPress`       | `onSelect`                                  |
+| **Pattern Regex**       | Optional capturing group  | Required capturing group                    |
+| **Triggers Access**     | Via `renderSuggestions`   | Via `triggers` object from hook             |
+
+## Complete Migration Example
+
+Here's a complete before/after comparison:
+
+**🚀 Try the live demos:**
+
+- **v2 Demo:** https://snack.expo.dev/@dabakovich/mentionsapp
+- **v3 Demo:** https://snack.expo.dev/@dabakovich/mentionsappv3
+
+<details>
+<summary><strong>v2 Implementation</strong></summary>
+
+```tsx
+import * as React from 'react';
+import { FC, useState } from 'react';
+import { MentionInput, Suggestion } from 'react-native-controlled-mentions';
+import { Pressable, Text, View } from 'react-native';
+
+const users = [
+  { id: '1', name: 'David Tabaka' },
+  { id: '2', name: 'Mary' },
+];
+
+const renderSuggestions: (suggestions: Suggestion[]) => FC<MentionSuggestionsProps> =
+  (suggestions) =>
+  ({ keyword, onSuggestionPress }) => {
+    if (keyword == null) return null;
+
+    return (
+      <View>
+        {suggestions
+          .filter((one) => one.name.toLocaleLowerCase().includes(keyword.toLocaleLowerCase()))
+          .map((one) => (
+            <Pressable key={one.id} onPress={() => onSuggestionPress(one)} style={{ padding: 12 }}>
+              <Text>{one.name}</Text>
+            </Pressable>
+          ))}
+      </View>
+    );
+  };
+
+const App = () => {
+  const [value, setValue] = useState('Hello @[Mary](2)!');
+
+  return (
+    <MentionInput
+      value={value}
+      onChange={setValue}
+      partTypes={[
+        {
+          trigger: '@',
+          renderSuggestions: renderSuggestions(users),
+        },
+        {
+          pattern: /https?:\/\/[^\s]+/gi,
+          textStyle: { color: 'blue' },
+        },
+      ]}
+      style={{ padding: 12, fontSize: 18 }}
+      placeholder="Type here..."
+    />
+  );
+};
+```
+
+</details>
+
+<details>
+<summary><strong>v3 Implementation</strong></summary>
+
+```tsx
+import * as React from 'react';
+import { FC, useState } from 'react';
+import {
+  useMentions,
+  SuggestionsProvidedProps,
+  TriggersConfig,
+  PatternsConfig,
+} from 'react-native-controlled-mentions';
+import { Pressable, Text, TextInput, View } from 'react-native';
+
+const users = [
+  { id: '1', name: 'David Tabaka' },
+  { id: '2', name: 'Mary' },
+];
+
+const Suggestions: FC<SuggestionsProvidedProps & { suggestions: any[] }> = ({
+  keyword,
+  onSelect,
+  suggestions,
+}) => {
+  if (keyword == null) return null;
+
+  return (
+    <View>
+      {suggestions
+        .filter((one) => one.name.toLocaleLowerCase().includes(keyword.toLocaleLowerCase()))
+        .map((one) => (
+          <Pressable key={one.id} onPress={() => onSelect(one)} style={{ padding: 12 }}>
+            <Text>{one.name}</Text>
+          </Pressable>
+        ))}
+    </View>
+  );
+};
 
 const triggersConfig: TriggersConfig<'mention'> = {
   mention: {
@@ -39,128 +415,73 @@ const triggersConfig: TriggersConfig<'mention'> = {
   },
 };
 
-const { textInputProps, triggers } = useMentions({
-  value: textValue,
-  onChange: setTextValue,
-  triggersConfig,
-});
+const patternsConfig: PatternsConfig = {
+  url: {
+    pattern: /(https?:\/\/[^\s]+)/gi,
+    textStyle: { color: 'blue' },
+  },
+};
 
-return (
-  <>
-    <Suggestions {...triggers.mention} suggestions={users} />
-    <TextInput {...textInputProps} />
-  </>
+const App = () => {
+  const [value, setValue] = useState('Hello {@}[Mary](2)!');
+
+  const { textInputProps, triggers } = useMentions({
+    value,
+    onChange: setValue,
+    triggersConfig,
+    patternsConfig,
+  });
+
+  return (
+    <>
+      <Suggestions {...triggers.mention} suggestions={users} />
+
+      <TextInput
+        {...textInputProps}
+        style={{ padding: 12, fontSize: 18 }}
+        placeholder="Type here..."
+      />
+    </>
+  );
+};
+```
+
+</details>
+
+## Performance Considerations
+
+1. **Create configurations outside component**: Define `triggersConfig` and `patternsConfig` as constants outside your component or memoize them with `useMemo` to avoid unnecessary re-renders.
+
+2. **Memoize suggestions**: Consider memoizing your suggestions component if you have large suggestion lists.
+
+```tsx
+const triggersConfig = useMemo(
+  () => ({
+    mention: {
+      trigger: '@',
+      textStyle: { fontWeight: 'bold', color: 'blue' },
+    },
+  }),
+  [],
 );
 ```
 
-### 2. Update configuration format
+## TypeScript Benefits
 
-**v2 configuration:**
+v3 provides better TypeScript support:
 
-```tsx
-const partTypes = [
-  {
-    trigger: '@',
-    textStyle: { fontWeight: 'bold', color: 'blue' },
-    renderSuggestions: ({ keyword, onSuggestionPress }) => (
-      <Suggestions keyword={keyword} onSelect={onSuggestionPress} />
-    ),
-  },
-  {
-    trigger: '#',
-    textStyle: { fontWeight: 'bold', color: 'grey' },
-    renderSuggestions: ({ keyword, onSuggestionPress }) => (
-      <HashtagSuggestions keyword={keyword} onSelect={onSuggestionPress} />
-    ),
-  },
-];
-```
+- **Typed trigger names**: `TriggersConfig<'mention' | 'hashtag'>`
+- **Typed suggestions props**: `SuggestionsProvidedProps`
+- **Better inference**: More accurate type checking for configurations
 
-**v3 configuration:**
+## Common Migration Issues
 
-```tsx
-const triggersConfig: TriggersConfig<'mention' | 'hashtag'> = {
-  mention: {
-    trigger: '@',
-    textStyle: { fontWeight: 'bold', color: 'blue' },
-  },
-  hashtag: {
-    trigger: '#',
-    textStyle: { fontWeight: 'bold', color: 'grey' },
-  },
-};
-```
+1. **Missing capturing group**: Ensure all pattern regex include capturing group `/(pattern)/gi` (#89)
+2. **Wrong mention format**: Update existing mention strings from `@[Name](id)` to `{@}[Name](id)`
+3. **Missing TextInput import**: Don't forget to import `TextInput` from React Native
 
-### 3. Update suggestion rendering
+## Additional Resources
 
-**v2 suggestion rendering:**
-
-- Suggestions were rendered through the `renderSuggestions` prop within each `partType`
-- The callback received `keyword` and `onSuggestionPress` parameters
-
-**v3 suggestion rendering:**
-
-- Suggestions are rendered as separate components
-- Use the `triggers` object returned from `useMentions` hook
-- The trigger objects contain `keyword` and `onSelect` properties
-
-```tsx
-// v3 approach
-<Suggestions {...triggers.mention} suggestions={users} />
-<HashtagSuggestions {...triggers.hashtag} suggestions={hashtags} />
-```
-
-### 4. Update mention format in stored data
-
-If you have existing data with mentions, you need to update the format:
-
-- **v2 format:** `@[Name](id)` → **v3 format:** `{@}[Name](id)`
-
-**Migration script example:**
-
-```tsx
-const migrateMentionFormat = (oldText: string): string => {
-  // Convert @[Name](id) to {@}[Name](id)
-  return oldText.replace(/@\[([^\]]+)\]\(([^)]+)\)/g, '{@}[$1]($2)');
-};
-
-// Example usage
-const oldValue = 'Hello @[Mary](1), how are you?';
-const newValue = migrateMentionFormat(oldValue); // 'Hello {@}[Mary](1), how are you?'
-```
-
-### 5. Update component props and callbacks
-
-**Props name changes:**
-
-- `onSuggestionPress` → `onSelect`
-- `partTypes` → `triggersConfig`
-- Component no longer accepts `renderSuggestions` prop
-
-**Removed props:**
-
-- `containerStyle` (use wrapper component instead)
-- `inputRef` (use `ref` directly on `TextInput`)
-- `renderSuggestions` (render suggestions separately)
-- `isBottomMentionSuggestionsRender` (handle positioning in your suggestion component)
-
-### 6. Benefits of migration
-
-- **Better performance:** Optimized rendering and state management
-- **More flexibility:** Full control over suggestion rendering and positioning
-- **Better TypeScript support:** Enhanced type safety throughout the library
-- **Cleaner architecture:** Separation of concerns between input and suggestions
-- **Multiple trigger support:** Better support for multi-character triggers like `@@`, `##`
-
-### 7. Step-by-step migration checklist
-
-1. ✅ Install v3.0.0: `npm install react-native-controlled-mentions@latest` or `yarn install react-native-controlled-mentions@latest`
-2. ✅ Replace `MentionInput` imports with `useMentions` and `TriggersConfig`
-3. ✅ Convert `partTypes` array to `triggersConfig` object
-4. ✅ Move suggestion rendering outside of the configuration
-5. ✅ Update your `TextInput` to use `textInputProps` from the hook
-6. ✅ Use `triggers` object to pass props to your suggestion components
-7. ✅ Update stored mention data format from `@[Name](id)` to `{@}[Name](id)`
-8. ✅ Test your implementation thoroughly
-
-For detailed examples and advanced use cases, check the `/example` directory in the repository.
+- [v3 API Documentation](./README.md#api)
+- [Example Implementation](./example)
+- [Type Definitions](./src/types.ts)
