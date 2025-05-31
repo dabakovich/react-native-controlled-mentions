@@ -56,6 +56,11 @@ const urlPatternConfig: PatternConfig = {
     /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi,
 };
 
+const atAtPatternConfig: PatternConfig = {
+  pattern: /(@@)/gi,
+  textStyle: { color: 'blue' },
+};
+
 const configs: Config[] = [mentionConfig, hashtagConfig, urlPatternConfig];
 
 const triggersConfig: TriggersConfig<'mention'> = {
@@ -177,13 +182,15 @@ test('generates correct parts length from value', () => {
 
   expect(parseValue('Hey, {@}[David](1)! How are you?', configs).parts.length).toEqual(3);
 
+  expect(parseValue('Hey, @@ how are you?', [atAtPatternConfig]).parts.length).toEqual(3);
+
   expect(
     parseValue('https://google.com/, Hey, {@}[David](1)! How are you?', configs).parts.length,
   ).toEqual(4);
 
   expect(
-    parseValue('https://google.com/, Hey, {@}[David](1)! How are you, {@}[David](1)?', configs).parts
-      .length,
+    parseValue('https://google.com/, Hey, {@}[David](1)! How are you, {@}[David](1)?', configs)
+      .parts.length,
   ).toEqual(6);
 
   expect(parseValue('{#}[help](help)', configs).parts.length).toEqual(1);
