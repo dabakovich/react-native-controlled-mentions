@@ -24,7 +24,7 @@ In addition, you can add custom styling for a regex pattern (like URLs).
 
 ## Demo
 
-Try it on Expo Snack: https://snack.expo.io/@dabakovich/mentionsapp
+Try it on Expo Snack: https://snack.expo.dev/@dabakovich/mentionsappv3?platform=ios
 
 ![](demo.gif)
 

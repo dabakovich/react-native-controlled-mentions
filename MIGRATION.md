@@ -308,8 +308,8 @@ Here's a complete before/after comparison:
 
 **🚀 Try the live demos:**
 
-- **v2 Demo:** https://snack.expo.dev/@dabakovich/mentionsapp
-- **v3 Demo:** https://snack.expo.dev/@dabakovich/mentionsappv3
+- **v2 Demo:** https://snack.expo.dev/@dabakovich/mentionsapp?platform=ios
+- **v3 Demo:** https://snack.expo.dev/@dabakovich/mentionsappv3?platform=ios
 
 <details>
 <summary><strong>v2 Implementation</strong></summary>
