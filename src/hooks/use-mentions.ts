@@ -86,18 +86,20 @@ const useMentions = <TriggerName extends string>({
     children: React.createElement(
       Text,
       null,
-      mentionState.parts.map(({ text, config, data }, index) =>
-        config
-          ? React.createElement(
-              Text,
-              {
-                key: `${index}-${data?.trigger ?? 'pattern'}`,
-                style: config.textStyle ?? defaultTriggerTextStyle,
-              },
-              text,
-            )
-          : React.createElement(Text, { key: index }, text),
-      ),
+      mentionState.parts.map(({ text, config, data }, index) => {
+        if (!config) {
+          return React.createElement(Text, { key: index }, text)
+        }
+        const style = typeof config.textStyle === 'function' ? config.textStyle(data) : config.textStyle
+        return React.createElement(
+          Text,
+          {
+            key: `${index}-${data?.trigger ?? 'pattern'}`,
+            style: style ?? defaultTriggerTextStyle,
+          },
+          text,
+        )
+      }),
     ),
   };
 

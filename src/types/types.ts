@@ -66,7 +66,7 @@ type TriggerConfigBase = {
   isInsertSpaceAfterMention?: boolean;
 
   // Custom mention styles in text input
-  textStyle?: StyleProp<TextStyle>;
+  textStyle?: StyleProp<TextStyle> | ((data?: TriggerData) => StyleProp<TextStyle>);
 
   // Plain string generator for mention
   getPlainString?: (mention: TriggerData) => string;
@@ -88,7 +88,7 @@ type PatternConfig = {
   // RexExp with global flag
   pattern: RegExp;
 
-  textStyle?: StyleProp<TextStyle>;
+  textStyle?: StyleProp<TextStyle> | ((data?: TriggerData) => StyleProp<TextStyle>);
 };
 
 type Config = TriggerConfig | PatternConfig;
