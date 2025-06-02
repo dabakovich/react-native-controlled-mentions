@@ -371,7 +371,7 @@ Unique id for each suggestion.
 
 `name: string`
 
-Name that will be shown in `MentionInput` when user will select the suggestion.
+Name that will be shown in your `TextInput` when user will select the suggestion.
 
 ### Type `TriggerData`
 
@@ -400,7 +400,7 @@ The extracted id - `123`
 /({([^{^}]*)}\[([^[]*)]\(([^(^)]*)\))/i
 ```
 
-### `MentionInput` component props
+### Deprecated `MentionInput` component props
 
 If you prefer to use class component without hooks the `MentionInput` is for you.
 
@@ -420,14 +420,14 @@ For detailed migration instructions from v2 to v3, please see [MIGRATION.md](./M
 
 ## Parsing Mention's Value
 
-You can import RegEx that is using in the component and then extract all your mentions
-from `MentionInput`'s value using your own logic.
+You can import RegEx that is using in the component and then extract all mentions
+from `textValue` using your own logic.
 
 ```ts
 import { triggerRegEx } from 'react-native-controlled-mentions';
 ```
 
-Or you can use `replaceTriggerValues` helper to replace all mentions from `MentionInput`'s input using
+Or you can use `replaceTriggerValues` helper to replace all mentions from `textValue` using
 your replacer function that receives [TriggerData](#type-triggerdata) type and returns string.
 
 ```ts
@@ -485,8 +485,8 @@ const renderPart = (part: Part, index: number) => {
 /**
  * Value renderer. Parsing value to parts array and then mapping the array using 'renderPart'
  *
- * @param value - value from MentionInput
- * @param configs - configs array that you providing to MentionInput
+ * @param value - `textValue` that you're getting from the `useState` hook
+ * @param configs - configs array that you providing to the `useMentions` hook
  */
 const renderValue: FC = (value: string, configs: Config[]) => {
   const { parts } = parseValue(value, configs);
