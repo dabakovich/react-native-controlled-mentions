@@ -514,7 +514,16 @@ const renderValue: FC = (value: string, configs: Config[]) => {
 
 ## Support Me
 
-<a href="https://www.buymeacoffee.com/dabakovich" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+Unfortunately, common donation platforms (like GitHub Sponsors, Buy Me a Coffee, PayPal, and Stripe) are currently not available in Ukraine.
+
+However, you can still support me and this library in other meaningful ways:
+
+- ⭐ **Star the project** on GitHub to help increase its visibility
+- 🔗 **Link back to this project** in your own projects and documentation
+- 🤝 **Contribute** with your great ideas, bug reports, or code improvements
+- 📢 **Share** the project with others who might find it useful
+
+Your support in any of these forms is greatly appreciated and helps keep this project alive and growing!
 
 [npm-image]: https://img.shields.io/npm/v/react-native-controlled-mentions
 [npm-url]: https://npmjs.org/package/react-native-controlled-mentions
