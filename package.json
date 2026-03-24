@@ -48,7 +48,7 @@
     "@types/react": "17.0.44"
   },
   "dependencies": {
-    "diff": "5.0.0"
+    "diff": "5.2.2"
   },
   "jest": {
     "preset": "ts-jest",
